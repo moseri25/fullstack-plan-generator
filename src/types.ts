@@ -19,6 +19,10 @@ export interface Project {
   tone?: string;
   numSkills?: number;
   title: string;
+  detailedPrompt?: string;
+  systemOptimization?: string;
+  skillChainOptimization?: string;
+  masterSkill?: string;
   createdAt: any; // Firestore Timestamp
   skills: Skill[];
 }

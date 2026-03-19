@@ -84,7 +84,7 @@ service cloud.firestore {
     }
 
     function isValidProject() {
-      return hasOnlyAllowedFields(['userId', 'prompt', 'title', 'createdAt', 'skills', 'audience', 'tone', 'numSkills']) &&
+      return hasOnlyAllowedFields(['userId', 'prompt', 'title', 'createdAt', 'skills', 'audience', 'tone', 'numSkills', 'detailedPrompt', 'systemOptimization', 'skillChainOptimization']) &&
              hasRequiredFields(['userId', 'prompt', 'title', 'createdAt', 'skills']) &&
              validStringLength('userId', 1, 100) &&
              validStringLength('prompt', 1, 2000) &&
@@ -92,6 +92,9 @@ service cloud.firestore {
              (!('audience' in request.resource.data) || validStringLength('audience', 1, 100)) &&
              (!('tone' in request.resource.data) || validStringLength('tone', 1, 100)) &&
              (!('numSkills' in request.resource.data) || request.resource.data.numSkills is number) &&
+             (!('detailedPrompt' in request.resource.data) || request.resource.data.detailedPrompt is string) &&
+             (!('systemOptimization' in request.resource.data) || request.resource.data.systemOptimization is string) &&
+             (!('skillChainOptimization' in request.resource.data) || request.resource.data.skillChainOptimization is string) &&
              request.resource.data.createdAt is timestamp &&
              areValidSkills(request.resource.data.skills);
     }

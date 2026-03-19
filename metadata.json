@@ -1,5 +1,5 @@
 {
-  "name": "Full-Stack Skill Builder",
-  "description": "An AI assistant that generates step-by-step skills and prompts for building full-stack web, mobile, and software applications.",
+  "name": "Bilingual AI Assistant",
+  "description": "An AI assistant that accepts prompts in English or Hebrew with automatic text direction, and always responds in English.",
   "requestFramePermissions": []
 }
