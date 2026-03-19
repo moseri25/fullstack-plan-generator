@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A generated project containing skills",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created the project"
+        },
+        "prompt": {
+          "type": "string",
+          "description": "The original prompt used to generate the project"
+        },
+        "audience": {
+          "type": "string",
+          "description": "The target audience for the generated skills"
+        },
+        "tone": {
+          "type": "string",
+          "description": "The tone of the generated skills"
+        },
+        "numSkills": {
+          "type": "number",
+          "description": "The number of skills generated"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the project"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the project was created"
+        },
+        "skills": {
+          "type": "array",
+          "description": "The skills generated for the project",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique ID for the skill"
+              },
+              "title": {
+                "type": "string",
+                "description": "Title of the skill (e.g., Frontend, Backend)"
+              },
+              "content": {
+                "type": "string",
+                "description": "Markdown content of the skill"
+              }
+            },
+            "required": ["id", "title", "content"]
+          }
+        }
+      },
+      "required": ["userId", "prompt", "title", "createdAt", "skills"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": {
+        "$ref": "#/entities/Project"
+      },
+      "description": "Stores generated projects and their skills"
+    }
+  }
+}

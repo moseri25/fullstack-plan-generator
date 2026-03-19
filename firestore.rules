@@ -1,0 +1,111 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: projects
+    // Document ID: [auto-generated]
+    // Fields:
+    //   - userId: string (required) - The ID of the user who created the project
+    //   - prompt: string (required, max 2000 chars) - The original prompt
+    //   - title: string (required, max 200 chars) - The title of the project
+    //   - createdAt: timestamp (required) - When the project was created
+    //   - skills: list of objects (required, max 20 items) - The skills generated
+    //     - id: string (required, max 100 chars)
+    //     - title: string (required, max 100 chars)
+    //     - content: string (required, max 50000 chars)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    
+    function uidUnchanged() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid;
+    }
+    
+    function uidNotModified() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId;
+    }
+    
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidSkill(skill) {
+      return skill is map &&
+             skill.keys().hasOnly(['id', 'title', 'content']) &&
+             skill.keys().hasAll(['id', 'title', 'content']) &&
+             skill.id is string && skill.id.size() > 0 && skill.id.size() <= 100 &&
+             skill.title is string && skill.title.size() > 0 && skill.title.size() <= 100 &&
+             skill.content is string && skill.content.size() > 0 && skill.content.size() <= 50000;
+    }
+
+    function areValidSkills(skillsList) {
+      return skillsList is list && skillsList.size() <= 20 &&
+             (skillsList.size() == 0 || (
+               isValidSkill(skillsList[0]) &&
+               (skillsList.size() < 2 || isValidSkill(skillsList[1])) &&
+               (skillsList.size() < 3 || isValidSkill(skillsList[2])) &&
+               (skillsList.size() < 4 || isValidSkill(skillsList[3])) &&
+               (skillsList.size() < 5 || isValidSkill(skillsList[4])) &&
+               (skillsList.size() < 6 || isValidSkill(skillsList[5])) &&
+               (skillsList.size() < 7 || isValidSkill(skillsList[6])) &&
+               (skillsList.size() < 8 || isValidSkill(skillsList[7])) &&
+               (skillsList.size() < 9 || isValidSkill(skillsList[8])) &&
+               (skillsList.size() < 10 || isValidSkill(skillsList[9]))
+             ));
+    }
+
+    function isValidProject() {
+      return hasOnlyAllowedFields(['userId', 'prompt', 'title', 'createdAt', 'skills', 'audience', 'tone', 'numSkills']) &&
+             hasRequiredFields(['userId', 'prompt', 'title', 'createdAt', 'skills']) &&
+             validStringLength('userId', 1, 100) &&
+             validStringLength('prompt', 1, 2000) &&
+             validStringLength('title', 1, 200) &&
+             (!('audience' in request.resource.data) || validStringLength('audience', 1, 100)) &&
+             (!('tone' in request.resource.data) || validStringLength('tone', 1, 100)) &&
+             (!('numSkills' in request.resource.data) || request.resource.data.numSkills is number) &&
+             request.resource.data.createdAt is timestamp &&
+             areValidSkills(request.resource.data.skills);
+    }
+
+    match /projects/{projectId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && 
+                       isValidProject() && 
+                       uidUnchanged();
+      allow update: if isDocOwner() && 
+                       isValidProject() && 
+                       uidNotModified() &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+  }
+}
