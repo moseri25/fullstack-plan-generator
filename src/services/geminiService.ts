@@ -1,10 +1,24 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Skill, GenerateOptions } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (!aiInstance) {
+    // Check for standard Vite env var first (useful for Vercel deployments)
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && process.env.GEMINI_API_KEY);
+    
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is missing. Please add VITE_GEMINI_API_KEY to your Vercel Environment Variables.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 export async function generateSkills(options: GenerateOptions): Promise<{ title: string, skills: Skill[] }> {
   try {
+    const ai = getAI();
     // Step 1: Initial Generation
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -127,6 +141,7 @@ Return the IMPROVED list of skills as a JSON array of objects (id, title, conten
 
 export async function refineSkill(skill: Skill, projectContext: string, refinementPrompt: string): Promise<Skill> {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `You are an expert instructional designer.
