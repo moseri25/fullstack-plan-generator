@@ -13,10 +13,12 @@ service cloud.firestore {
     //   - prompt: string (required, max 2000 chars) - The original prompt
     //   - title: string (required, max 200 chars) - The title of the project
     //   - createdAt: timestamp (required) - When the project was created
+    //   - masterSkill: string (optional) - The master orchestrator skill
     //   - skills: list of objects (required, max 20 items) - The skills generated
     //     - id: string (required, max 100 chars)
     //     - title: string (required, max 100 chars)
     //     - content: string (required, max 50000 chars)
+    //     - tags: list of strings (optional, max 10 items)
     //
     // ===============================================================
 
@@ -60,11 +62,12 @@ service cloud.firestore {
 
     function isValidSkill(skill) {
       return skill is map &&
-             skill.keys().hasOnly(['id', 'title', 'content']) &&
+             skill.keys().hasOnly(['id', 'title', 'content', 'tags']) &&
              skill.keys().hasAll(['id', 'title', 'content']) &&
              skill.id is string && skill.id.size() > 0 && skill.id.size() <= 100 &&
              skill.title is string && skill.title.size() > 0 && skill.title.size() <= 100 &&
-             skill.content is string && skill.content.size() > 0 && skill.content.size() <= 50000;
+             skill.content is string && skill.content.size() > 0 && skill.content.size() <= 50000 &&
+             (!('tags' in skill) || (skill.tags is list && skill.tags.size() <= 10));
     }
 
     function areValidSkills(skillsList) {
@@ -84,7 +87,7 @@ service cloud.firestore {
     }
 
     function isValidProject() {
-      return hasOnlyAllowedFields(['userId', 'prompt', 'title', 'createdAt', 'skills', 'audience', 'tone', 'numSkills', 'detailedPrompt', 'systemOptimization', 'skillChainOptimization']) &&
+      return hasOnlyAllowedFields(['id', 'userId', 'prompt', 'title', 'createdAt', 'skills', 'audience', 'tone', 'numSkills', 'detailedPrompt', 'systemOptimization', 'skillChainOptimization', 'masterSkill']) &&
              hasRequiredFields(['userId', 'prompt', 'title', 'createdAt', 'skills']) &&
              validStringLength('userId', 1, 100) &&
              validStringLength('prompt', 1, 2000) &&
@@ -95,6 +98,7 @@ service cloud.firestore {
              (!('detailedPrompt' in request.resource.data) || request.resource.data.detailedPrompt is string) &&
              (!('systemOptimization' in request.resource.data) || request.resource.data.systemOptimization is string) &&
              (!('skillChainOptimization' in request.resource.data) || request.resource.data.skillChainOptimization is string) &&
+             (!('masterSkill' in request.resource.data) || request.resource.data.masterSkill is string) &&
              request.resource.data.createdAt is timestamp &&
              areValidSkills(request.resource.data.skills);
     }

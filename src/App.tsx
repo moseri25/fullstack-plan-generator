@@ -4,7 +4,7 @@ import {
   Loader2, Sparkles, Download, Save, LogOut, Code2, Layers, 
   Terminal, Database, LayoutTemplate, Server, Smartphone, MonitorPlay,
   CheckCircle2, AlertCircle, FileArchive, FileDown, Settings2, Wand2, RotateCcw,
-  Trash2
+  Trash2, Search
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -49,6 +49,10 @@ function MainApp() {
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Search State
+  const [skillSearchQuery, setSkillSearchQuery] = useState('');
+  const [projectSearchQuery, setProjectSearchQuery] = useState('');
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -622,7 +626,29 @@ function MainApp() {
                           </button>
                         </div>
 
-                        {activeResultView === 'skills' && currentProject.skills.map((skill, index) => (
+                        {activeResultView === 'skills' && (
+                          <div className="mb-4 relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Search className="h-4 w-4 text-zinc-400" />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Search skills by tag, title, or content..."
+                              value={skillSearchQuery}
+                              onChange={(e) => setSkillSearchQuery(e.target.value)}
+                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            />
+                          </div>
+                        )}
+
+                        {activeResultView === 'skills' && currentProject.skills.filter(skill => {
+                          const query = skillSearchQuery.toLowerCase();
+                          return (
+                            skill.title.toLowerCase().includes(query) ||
+                            skill.content.toLowerCase().includes(query) ||
+                            skill.tags?.some(tag => tag.toLowerCase().includes(query))
+                          );
+                        }).map((skill, index) => (
                           <button
                             key={skill.id}
                             onClick={() => setSelectedSkill(skill)}
@@ -637,16 +663,39 @@ function MainApp() {
                             }`}>
                               {getIconForSkill(skill.title)}
                             </div>
-                            <div>
+                            <div className="flex-1">
                               <div className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Phase {index + 1}</div>
                               <div className={`text-sm font-bold leading-snug line-clamp-2 ${
                                 selectedSkill?.id === skill.id ? 'text-indigo-950' : 'text-zinc-700'
                               }`}>
                                 {skill.title}
                               </div>
+                              {skill.tags && skill.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {skill.tags.map(tag => (
+                                    <span key={tag} className={`text-[9px] px-1.5 py-0.5 rounded-md font-medium ${
+                                      selectedSkill?.id === skill.id ? 'bg-indigo-100 text-indigo-700' : 'bg-zinc-200 text-zinc-600'
+                                    }`}>
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </button>
                         ))}
+                        {activeResultView === 'skills' && currentProject.skills.filter(skill => {
+                          const query = skillSearchQuery.toLowerCase();
+                          return (
+                            skill.title.toLowerCase().includes(query) ||
+                            skill.content.toLowerCase().includes(query) ||
+                            skill.tags?.some(tag => tag.toLowerCase().includes(query))
+                          );
+                        }).length === 0 && (
+                          <div className="text-center py-8 text-zinc-500 text-sm">
+                            No skills found matching "{skillSearchQuery}"
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -671,7 +720,19 @@ function MainApp() {
                                   </div>
                                   <div>
                                     <h2 className="text-2xl font-bold text-zinc-900 font-display tracking-tight">{selectedSkill.title}</h2>
-                                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">Technical Specification</p>
+                                    <div className="flex items-center gap-3 mt-1.5">
+                                      <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Technical Specification</p>
+                                      {selectedSkill.tags && selectedSkill.tags.length > 0 && (
+                                        <div className="flex items-center gap-1.5">
+                                          <div className="w-1 h-1 rounded-full bg-zinc-300"></div>
+                                          {selectedSkill.tags.map(tag => (
+                                            <span key={tag} className="text-[10px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md font-bold">
+                                              {tag}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                                 <button
@@ -860,17 +921,32 @@ function MainApp() {
 
         {activeTab === 'saved' && (
           <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-zinc-900">Your Saved Projects</h2>
-              {savedProjects.length > 0 && (
-                <button
-                  onClick={() => setIsDeleteAllModalOpen(true)}
-                  className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 py-2 px-4 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete All
-                </button>
-              )}
+              
+              <div className="flex items-center gap-4">
+                <div className="relative w-full sm:w-64">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-zinc-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search projects or skills..."
+                    value={projectSearchQuery}
+                    onChange={(e) => setProjectSearchQuery(e.target.value)}
+                    className="w-full bg-white border border-zinc-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                  />
+                </div>
+                {savedProjects.length > 0 && (
+                  <button
+                    onClick={() => setIsDeleteAllModalOpen(true)}
+                    className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 py-2 px-4 rounded-lg transition-colors whitespace-nowrap"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete All
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -882,8 +958,35 @@ function MainApp() {
                   <h3 className="text-xl font-bold text-zinc-900 font-display mb-2">No archived projects</h3>
                   <p className="max-w-xs text-center">Your architectural specifications will appear here once archived.</p>
                 </div>
+              ) : savedProjects.filter(project => {
+                const query = projectSearchQuery.toLowerCase();
+                return (
+                  project.title.toLowerCase().includes(query) ||
+                  project.prompt.toLowerCase().includes(query) ||
+                  project.skills.some(skill => 
+                    skill.title.toLowerCase().includes(query) || 
+                    skill.content.toLowerCase().includes(query) ||
+                    skill.tags?.some(tag => tag.toLowerCase().includes(query))
+                  )
+                );
+              }).length === 0 ? (
+                <div className="col-span-full flex flex-col items-center justify-center py-20 text-zinc-500">
+                  <Search className="w-10 h-10 opacity-20 mb-4" />
+                  <p>No projects found matching "{projectSearchQuery}"</p>
+                </div>
               ) : (
-                savedProjects.map((project) => (
+                savedProjects.filter(project => {
+                  const query = projectSearchQuery.toLowerCase();
+                  return (
+                    project.title.toLowerCase().includes(query) ||
+                    project.prompt.toLowerCase().includes(query) ||
+                    project.skills.some(skill => 
+                      skill.title.toLowerCase().includes(query) || 
+                      skill.content.toLowerCase().includes(query) ||
+                      skill.tags?.some(tag => tag.toLowerCase().includes(query))
+                    )
+                  );
+                }).map((project) => (
                   <motion.div 
                     key={project.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -921,9 +1024,30 @@ function MainApp() {
                     </div>
                     
                     <h3 className="text-lg font-bold text-zinc-900 mb-3 line-clamp-2 font-display group-hover:text-indigo-600 transition-colors">{project.title}</h3>
-                    <p className="text-sm text-zinc-500 line-clamp-3 mb-6 flex-1 leading-relaxed">
+                    <p className="text-sm text-zinc-500 line-clamp-3 mb-4 flex-1 leading-relaxed">
                       {project.prompt}
                     </p>
+                    
+                    {(() => {
+                      const allTags = Array.from(new Set(project.skills.flatMap(s => s.tags || []))).slice(0, 3);
+                      if (allTags.length > 0) {
+                        return (
+                          <div className="flex flex-wrap gap-1.5 mb-6">
+                            {allTags.map(tag => (
+                              <span key={tag} className="text-[9px] px-2 py-1 bg-zinc-100 text-zinc-600 rounded-md font-bold">
+                                {tag}
+                              </span>
+                            ))}
+                            {new Set(project.skills.flatMap(s => s.tags || [])).size > 3 && (
+                              <span className="text-[9px] px-2 py-1 bg-zinc-50 text-zinc-400 rounded-md font-bold">
+                                +{new Set(project.skills.flatMap(s => s.tags || [])).size - 3}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      }
+                      return <div className="mb-6"></div>;
+                    })()}
                     
                     <div className="flex items-center justify-between mt-auto pt-5 border-t border-zinc-100">
                       <div className="flex items-center gap-2">

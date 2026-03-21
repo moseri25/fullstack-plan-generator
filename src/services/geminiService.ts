@@ -58,7 +58,8 @@ Return the response as a JSON object with:
 6. "skills": An array of objects, each with:
    - "id": A unique, semantic string ID.
    - "title": A professional, high-level name for the skill.
-   - "content": The elite-level markdown content. Use professional headings, clear technical requirements, and high-quality code examples.`,
+   - "content": The elite-level markdown content. Use professional headings, clear technical requirements, and high-quality code examples.
+   - "tags": An array of 3-6 relevant keywords or technologies (e.g., "React", "Node.js", "System Design").`,
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
@@ -103,8 +104,15 @@ Return the response as a JSON object with:
                     type: Type.STRING,
                     description: "The elite-level markdown content for this skill.",
                   },
+                  tags: {
+                    type: Type.ARRAY,
+                    description: "An array of 3-6 relevant keywords or technologies.",
+                    items: {
+                      type: Type.STRING
+                    }
+                  }
                 },
-                required: ["id", "title", "content"],
+                required: ["id", "title", "content", "tags"],
               },
             },
           },
@@ -135,7 +143,7 @@ Your task is to ELIMINATE BLANDNESS and GENERIC CONTENT.
 5. Verify that the tone is "${options.tone}" and the depth matches "${options.audience}".
 6. LANGUAGE: The response from the model must always be in English, regardless of the input language.
 
-Return the IMPROVED list of skills as a JSON array of objects (id, title, content).`,
+Return the IMPROVED list of skills as a JSON array of objects (id, title, content, tags).`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -146,8 +154,12 @@ Return the IMPROVED list of skills as a JSON array of objects (id, title, conten
               id: { type: Type.STRING },
               title: { type: Type.STRING },
               content: { type: Type.STRING },
+              tags: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              }
             },
-            required: ["id", "title", "content"],
+            required: ["id", "title", "content", "tags"],
           },
         },
       },
@@ -190,7 +202,7 @@ Your task is to update this technical specification based on the stakeholder's r
 Maintain the elite, professional standard. Ensure all technical requirements are precise, code examples are modern and type-safe, and the design language is sophisticated.
 The response from the model must always be in English, regardless of the input language.
 
-Return a JSON object with the updated "title" and "content".`,
+Return a JSON object with the updated "title", "content", and "tags".`,
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
@@ -199,8 +211,12 @@ Return a JSON object with the updated "title" and "content".`,
           properties: {
             title: { type: Type.STRING },
             content: { type: Type.STRING },
+            tags: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            }
           },
-          required: ["title", "content"],
+          required: ["title", "content", "tags"],
         },
       },
     });
@@ -212,7 +228,8 @@ Return a JSON object with the updated "title" and "content".`,
     return {
       ...skill,
       title: parsed.title,
-      content: parsed.content
+      content: parsed.content,
+      tags: parsed.tags
     };
   } catch (error) {
     console.error("Error refining skill:", error);

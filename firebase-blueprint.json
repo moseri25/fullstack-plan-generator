@@ -51,10 +51,33 @@
               "content": {
                 "type": "string",
                 "description": "Markdown content of the skill"
+              },
+              "tags": {
+                "type": "array",
+                "description": "Array of tags for the skill",
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "required": ["id", "title", "content"]
           }
+        },
+        "detailedPrompt": {
+          "type": "string",
+          "description": "The detailed technical prompt generated"
+        },
+        "systemOptimization": {
+          "type": "string",
+          "description": "System optimization instructions"
+        },
+        "skillChainOptimization": {
+          "type": "string",
+          "description": "Skill chain optimization logic"
+        },
+        "masterSkill": {
+          "type": "string",
+          "description": "The master orchestrator skill"
         }
       },
       "required": ["userId", "prompt", "title", "createdAt", "skills"]
