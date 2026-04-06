@@ -4,7 +4,7 @@ import {
   Loader2, Sparkles, Download, Save, LogOut, Code2, Layers, 
   Terminal, Database, LayoutTemplate, Server, Smartphone, MonitorPlay,
   CheckCircle2, AlertCircle, FileArchive, FileDown, Settings2, Wand2, RotateCcw,
-  Trash2, Search
+  Trash2, Search, Key, X
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -53,6 +53,10 @@ function MainApp() {
   // Search State
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
   const [projectSearchQuery, setProjectSearchQuery] = useState('');
+
+  // API Key State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [manualApiKey, setManualApiKey] = useState(localStorage.getItem('GEMINI_API_KEY') || '');
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -278,6 +282,13 @@ function MainApp() {
     return <Code2 className="w-5 h-5" />;
   };
 
+  const handleSaveApiKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('GEMINI_API_KEY', manualApiKey);
+    setIsSettingsOpen(false);
+    // Optional: reload or show success
+  };
+
   if (!isAuthReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-50">
@@ -352,6 +363,14 @@ function MainApp() {
             
             <div className="h-6 w-px bg-zinc-200 hidden sm:block"></div>
             
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="text-zinc-500 hover:text-zinc-900 transition-colors p-2 rounded-full hover:bg-zinc-100"
+              title="API Settings"
+            >
+              <Key className="w-5 h-5" />
+            </button>
+
             <button
               onClick={logOut}
               className="text-zinc-500 hover:text-zinc-900 transition-colors p-2 rounded-full hover:bg-zinc-100"
@@ -1074,6 +1093,70 @@ function MainApp() {
           </div>
         )}
       </main>
+
+      {/* API Settings Modal */}
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+            >
+              <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <Key className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-xl font-bold text-zinc-900">API Configuration</h2>
+                </div>
+                <button 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-zinc-400" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSaveApiKey} className="p-6 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                    Gemini API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={manualApiKey}
+                    onChange={(e) => setManualApiKey(e.target.value)}
+                    placeholder="Enter your API key..."
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                  />
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    Your key is stored locally in your browser and never sent to our servers. 
+                    It is used directly to communicate with the Gemini API.
+                  </p>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsSettingsOpen(false)}
+                    className="flex-1 px-4 py-3 bg-zinc-100 text-zinc-600 font-bold rounded-xl hover:bg-zinc-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                  >
+                    Save Configuration
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Save Modal */}
       <AnimatePresence>

@@ -1,7 +1,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Skill, GenerateOptions } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Helper to get the AI instance with the current API key
+function getAI() {
+  const manualKey = localStorage.getItem('GEMINI_API_KEY');
+  const envKey = process.env.GEMINI_API_KEY;
+  const apiKey = manualKey || envKey;
+
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is missing. Please provide it in the settings or environment variables.");
+  }
+
+  return new GoogleGenAI({ apiKey });
+}
 
 export async function generateSkills(options: GenerateOptions): Promise<{ 
   title: string, 
@@ -12,6 +23,7 @@ export async function generateSkills(options: GenerateOptions): Promise<{
   masterSkill: string
 }> {
   try {
+    const ai = getAI();
     // Step 1: Initial Generation
     const response = await ai.models.generateContent({
       model: "gemini-3.1-pro-preview", // Use Pro for higher quality
@@ -186,6 +198,7 @@ Return the IMPROVED list of skills as a JSON array of objects (id, title, conten
 
 export async function refineSkill(skill: Skill, projectContext: string, refinementPrompt: string): Promise<Skill> {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3.1-pro-preview",
       contents: `You are a Principal Software Architect and Lead Product Designer.
