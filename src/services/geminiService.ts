@@ -14,6 +14,20 @@ function getAI() {
   return new GoogleGenAI({ apiKey });
 }
 
+export async function validateApiKey(apiKey: string): Promise<boolean> {
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: "Respond with 'ok' if you can read this.",
+    });
+    return response.text?.toLowerCase().includes('ok') ?? false;
+  } catch (error) {
+    console.error("API Key validation failed:", error);
+    return false;
+  }
+}
+
 export async function generateSkills(options: GenerateOptions): Promise<{ 
   title: string, 
   skills: Skill[], 
