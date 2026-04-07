@@ -6,13 +6,12 @@ function getAI() {
   // 1. First priority: The key the user entered in the UI (stored in localStorage)
   const manualKey = localStorage.getItem('GEMINI_API_KEY');
   
-  // 2. Second priority: Fallback to environment variables (if provided by the developer)
-  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-  const envKey = process.env.GEMINI_API_KEY;
-  
-  const apiKey = manualKey || viteKey || envKey;
+  // 2. Second priority: Fallback to environment variables
+  // Note: process.env.GEMINI_API_KEY is defined in vite.config.ts for production/dev
+  const apiKey = manualKey || process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'undefined' || apiKey === 'null' || !apiKey.trim()) {
+    console.error("Gemini API Key is missing. Please configure it in settings.");
     throw new Error("מפתח API חסר. נא להגדיר את מפתח ה-Gemini שלך בתפריט ההגדרות באתר.");
   }
 
@@ -22,35 +21,37 @@ function getAI() {
 export async function validateApiKey(apiKey: string): Promise<boolean> {
   if (!apiKey || !apiKey.trim()) return false;
   
-  try {
-    const ai = new GoogleGenAI({ apiKey });
-    // Use a very simple prompt and just check if we get a response
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: "test",
-    });
-    
-    const isValid = !!response.text;
-    console.log("API Key validation result:", isValid);
-    return isValid;
-  } catch (error) {
-    console.error("API Key validation failed with error:", error);
-    // If it's a model not found error, try another common model
-    if (error instanceof Error && (error.message.includes('not found') || error.message.includes('404'))) {
-      try {
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-          model: "gemini-2.0-flash-exp", // Fallback to another common model
-          contents: "test",
-        });
-        return !!response.text;
-      } catch (innerError) {
-        console.error("API Key validation fallback failed:", innerError);
-        return false;
+  // List of models to try for validation, from most preferred to most stable
+  const modelsToTry = [
+    "gemini-3-flash-preview",
+    "gemini-flash-latest",
+    "gemini-3.1-flash-lite-preview"
+  ];
+
+  for (const modelName of modelsToTry) {
+    try {
+      console.log(`[API Validation] Attempting with model: ${modelName}`);
+      const ai = new GoogleGenAI({ apiKey });
+      const model = ai.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent("test");
+      const response = await result.response;
+      const text = response.text();
+      
+      if (text) {
+        console.log(`[API Validation] Success with model: ${modelName}`);
+        return true;
+      }
+    } catch (error: any) {
+      console.warn(`[API Validation] Failed for ${modelName}:`, error?.message || error);
+      // If it's a 403 or 400, it might be a key issue rather than a model issue
+      if (error?.message?.includes('403') || error?.message?.includes('400')) {
+        console.error("[API Validation] Critical error (403/400) - likely invalid key or restriction.");
       }
     }
-    return false;
   }
+
+  console.error("All API key validation attempts failed.");
+  return false;
 }
 
 export async function generateSkills(options: GenerateOptions): Promise<{ 
