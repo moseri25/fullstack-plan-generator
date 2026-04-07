@@ -1178,7 +1178,7 @@ function MainApp() {
                     onChange={(e) => setPrompt(e.target.value)}
                     dir={/[\u0590-\u05FF]/.test(prompt) ? 'rtl' : 'ltr'}
                     placeholder={t.main.describeVision}
-                    className="w-full h-48 p-8 bg-zinc-900/50 border-2 border-zinc-900 focus:border-purple-600 outline-none resize-none transition-all text-xl font-semibold uppercase tracking-tight placeholder:text-zinc-800"
+                    className="w-full h-48 p-8 bg-zinc-900/50 border-2 border-zinc-900 focus:border-purple-600 outline-none resize-none transition-all text-xl font-semibold tracking-tight placeholder:text-zinc-800"
                     disabled={isGenerating}
                   />
                   <div className={`absolute bottom-4 ${lang === 'en' ? 'right-4' : 'left-4'} text-[10px] font-bold text-zinc-700 uppercase tracking-widest`}>
@@ -1389,7 +1389,7 @@ function MainApp() {
                               placeholder={t.main.filterPhases}
                               value={skillSearchQuery}
                               onChange={(e) => setSkillSearchQuery(e.target.value)}
-                              className={`w-full bg-zinc-900 border-2 border-zinc-800 ${lang === 'en' ? 'pl-12 pr-4' : 'pr-12 pl-4'} py-3 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700`}
+                              className={`w-full bg-zinc-900 border-2 border-zinc-800 ${lang === 'en' ? 'pl-12 pr-4' : 'pr-12 pl-4'} py-3 text-[10px] font-bold tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700`}
                             />
                           </div>
                         )}
@@ -1516,7 +1516,7 @@ function MainApp() {
                                       onChange={(e) => setRefinementPrompt(e.target.value)}
                                       dir={/[\u0590-\u05FF]/.test(refinementPrompt) ? 'rtl' : 'ltr'}
                                       placeholder={t.main.describeRefinement}
-                                      className="w-full bg-white border-2 border-zinc-200 px-6 py-4 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-300 text-black"
+                                      className="w-full bg-white border-2 border-zinc-200 px-6 py-4 text-[10px] font-bold tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-300 text-black"
                                       disabled={isRefining}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && refinementPrompt.trim() && !isRefining) {
@@ -1751,7 +1751,7 @@ function MainApp() {
                     placeholder={t.main.searchArchive}
                     value={projectSearchQuery}
                     onChange={(e) => setProjectSearchQuery(e.target.value)}
-                    className={`w-full bg-zinc-900 border-2 border-zinc-800 ${lang === 'en' ? 'pl-12 pr-4' : 'pr-12 pl-4'} py-3 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700`}
+                    className={`w-full bg-zinc-900 border-2 border-zinc-800 ${lang === 'en' ? 'pl-12 pr-4' : 'pr-12 pl-4'} py-3 text-[10px] font-bold tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700`}
                   />
                 </div>
                 {savedProjects.length > 0 && (
@@ -2074,7 +2074,7 @@ function MainApp() {
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
                   placeholder={t.modals.designationName}
-                  className="w-full bg-zinc-900 border-2 border-zinc-800 px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-white outline-none focus:border-purple-600 transition-all placeholder:text-zinc-800"
+                  className="w-full bg-zinc-900 border-2 border-zinc-800 px-6 py-5 text-[10px] font-semibold tracking-widest text-white outline-none focus:border-purple-600 transition-all placeholder:text-zinc-800"
                   autoFocus
                 />
               </div>
