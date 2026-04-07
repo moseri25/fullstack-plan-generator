@@ -103,5 +103,9 @@ service cloud.firestore {
                        request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isDocOwner();
     }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
   }
 }

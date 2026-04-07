@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Loader2, Sparkles, Download, Save, LogOut, Code2, Layers, 
   Terminal, Database, LayoutTemplate, Server, Smartphone, MonitorPlay,
-  CheckCircle2, AlertCircle, FileArchive, FileDown, Settings2, Wand2, RotateCcw,
+  CheckCircle2, AlertCircle, Info, FileArchive, FileDown, Settings2, Wand2, RotateCcw,
   Trash2, Search, Key, X, Menu, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import JSZip from 'jszip';
@@ -485,6 +485,7 @@ function MainApp() {
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   // Search State
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
@@ -548,6 +549,14 @@ function MainApp() {
     e.preventDefault();
     if (!prompt.trim() || !user) return;
 
+    // Check for API key - force manual entry as requested by user
+    const savedKey = localStorage.getItem('GEMINI_API_KEY');
+    if (!savedKey) {
+      showNotification(lang === 'en' ? 'Gemini API Key is required. Please set it in the settings menu.' : 'מפתח Gemini API נדרש. אנא הגדר אותו בתפריט ההגדרות.', 'error');
+      setIsSettingsOpen(true);
+      return;
+    }
+
     setIsGenerating(true);
     setCurrentProject(null);
     setSelectedSkill(null);
@@ -581,7 +590,7 @@ function MainApp() {
     } catch (error: any) {
       console.error("Generation failed:", error);
       const errorMessage = error.message || "Unknown error occurred";
-      alert(`Failed to generate skills: ${errorMessage}\n\nPlease check your API key in settings.`);
+      showNotification(lang === 'en' ? `Failed to generate skills: ${errorMessage}` : `יצירת מיומנויות נכשלה: ${errorMessage}`, 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -590,6 +599,14 @@ function MainApp() {
   const handleRefine = async () => {
     if (!selectedSkill || !currentProject || !refinementPrompt.trim()) return;
     
+    // Check for API key - force manual entry as requested by user
+    const savedKey = localStorage.getItem('GEMINI_API_KEY');
+    if (!savedKey) {
+      showNotification(lang === 'en' ? 'Gemini API Key is required. Please set it in the settings menu.' : 'מפתח Gemini API נדרש. אנא הגדר אותו בתפריט ההגדרות.', 'error');
+      setIsSettingsOpen(true);
+      return;
+    }
+
     setIsRefining(true);
     try {
       const refinedSkill = await refineSkill(selectedSkill, currentProject.prompt, refinementPrompt);
@@ -605,9 +622,10 @@ function MainApp() {
       });
       setSelectedSkill(refinedSkill);
       setRefinementPrompt('');
+      showNotification(lang === 'en' ? 'Skill refined successfully.' : 'המיומנות עודכנה בהצלחה.', 'success');
     } catch (error) {
       console.error("Refinement failed:", error);
-      alert("Failed to refine skill. Please try again.");
+      showNotification(lang === 'en' ? 'Failed to refine skill. Please try again.' : 'עדכון המיומנות נכשל. אנא נסה שוב.', 'error');
     } finally {
       setIsRefining(false);
     }
@@ -624,21 +642,41 @@ function MainApp() {
     setShowAdvanced(false);
   };
 
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
   const saveProjectToFirebase = async () => {
-    if (!currentProject || !user || !customTitle.trim()) return;
+    if (!currentProject || !user || !customTitle.trim()) {
+      if (!user) showNotification(lang === 'en' ? 'Please sign in to archive projects.' : 'אנא התחבר כדי לשמור פרויקטים בארכיון.', 'error');
+      return;
+    }
     setIsSaving(true);
     try {
+      // Clean up project data to ensure it matches the schema and doesn't have an ID
+      const { id, ...cleanProject } = currentProject as any;
       const projectData = {
-        ...currentProject,
+        ...cleanProject,
+        userId: user.uid, // Explicitly set userId from current user
         title: customTitle.trim(),
         createdAt: serverTimestamp(),
       };
+      
       await addDoc(collection(db, 'projects'), projectData);
       setSaveSuccess(true);
       setIsSaveModalOpen(false);
+      showNotification(lang === 'en' ? 'Project archived successfully.' : 'הפרויקט נשמר בארכיון בהצלחה.', 'success');
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'projects');
+    } catch (error: any) {
+      console.error("Save failed:", error);
+      showNotification(lang === 'en' ? `Failed to archive: ${error.message}` : `שמירה נכשלה: ${error.message}`, 'error');
+      // We still log to console for debugging
+      try {
+        handleFirestoreError(error, OperationType.CREATE, 'projects');
+      } catch (e) {
+        // handleFirestoreError throws, but we already showed a notification
+      }
     } finally {
       setIsSaving(false);
     }
@@ -651,8 +689,13 @@ function MainApp() {
       await deleteDoc(doc(db, 'projects', projectToDelete.id));
       setIsDeleteModalOpen(false);
       setProjectToDelete(null);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `projects/${projectToDelete.id}`);
+      showNotification(lang === 'en' ? 'Project deleted.' : 'הפרויקט נמחק.', 'success');
+    } catch (error: any) {
+      console.error("Delete failed:", error);
+      showNotification(lang === 'en' ? `Failed to delete: ${error.message}` : `מחיקה נכשלה: ${error.message}`, 'error');
+      try {
+        handleFirestoreError(error, OperationType.DELETE, `projects/${projectToDelete.id}`);
+      } catch (e) {}
     } finally {
       setIsDeleting(false);
     }
@@ -670,8 +713,13 @@ function MainApp() {
       });
       await batch.commit();
       setIsDeleteAllModalOpen(false);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, 'projects');
+      showNotification(lang === 'en' ? 'All projects deleted.' : 'כל הפרויקטים נמחקו.', 'success');
+    } catch (error: any) {
+      console.error("Delete all failed:", error);
+      showNotification(lang === 'en' ? `Failed to delete all: ${error.message}` : `מחיקה נכשלה: ${error.message}`, 'error');
+      try {
+        handleFirestoreError(error, OperationType.DELETE, 'projects');
+      } catch (e) {}
     } finally {
       setIsDeleting(false);
     }
@@ -1130,7 +1178,7 @@ function MainApp() {
                           <button
                             onClick={() => {
                               if (!user) {
-                                alert(lang === 'en' ? 'Please sign in to archive projects.' : 'אנא התחבר כדי לשמור פרויקטים בארכיון.');
+                                showNotification(lang === 'en' ? 'Please sign in to archive projects.' : 'אנא התחבר כדי לשמור פרויקטים בארכיון.', 'error');
                                 return;
                               }
                               setCustomTitle(currentProject.title);
@@ -2000,6 +2048,41 @@ function MainApp() {
           </div>
         )}
       </AnimatePresence>
+      
+      {/* Notifications */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] w-full max-w-md px-4 pointer-events-none">
+        <AnimatePresence>
+          {notification && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              className={`pointer-events-auto flex items-center gap-4 p-5 border-2 shadow-2xl backdrop-blur-xl ${
+                notification.type === 'success' 
+                  ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-400' 
+                  : notification.type === 'error'
+                  ? 'bg-red-950/90 border-red-500/50 text-red-400'
+                  : 'bg-zinc-900/90 border-zinc-700/50 text-zinc-300'
+              }`}
+            >
+              <div className={`p-2 rounded-full ${
+                notification.type === 'success' ? 'bg-emerald-500/20' : notification.type === 'error' ? 'bg-red-500/20' : 'bg-zinc-500/20'
+              }`}>
+                {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : notification.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <Info className="w-5 h-5" />}
+              </div>
+              <p className="text-[11px] font-bold uppercase tracking-widest flex-1 leading-relaxed">
+                {notification.message}
+              </p>
+              <button 
+                onClick={() => setNotification(null)}
+                className="p-2 hover:bg-white/10 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

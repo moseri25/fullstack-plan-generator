@@ -3,17 +3,12 @@ import { Skill, GenerateOptions } from "../types";
 
 // Helper to get the AI instance with the current API key
 function getAI() {
-  // 1. First priority: The key the user entered in the UI (stored in localStorage)
-  const manualKey = localStorage.getItem('GEMINI_API_KEY');
-  
-  // 2. Second priority: Fallback to environment variables (if provided by the developer)
-  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-  const envKey = process.env.GEMINI_API_KEY;
-  
-  const apiKey = manualKey || viteKey || envKey;
+  // ONLY use the key the user entered in the UI (stored in localStorage)
+  // This ensures the app is local-per-user and doesn't use a permanent system key.
+  const apiKey = localStorage.getItem('GEMINI_API_KEY');
 
   if (!apiKey || apiKey === 'undefined' || apiKey === 'null' || !apiKey.trim()) {
-    throw new Error("מפתח API חסר. נא להגדיר את מפתח ה-Gemini שלך בתפריט ההגדרות באתר.");
+    throw new Error("API Key missing. Please configure your Gemini API key in the settings menu (Key icon) to use the generator.");
   }
 
   return new GoogleGenAI({ apiKey });
