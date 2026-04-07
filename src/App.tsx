@@ -36,6 +36,34 @@ function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language })
 
   const [selectedFeature, setSelectedFeature] = useState<any>(null);
 
+  const playClickSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+      console.warn('Audio feedback not supported');
+    }
+  };
+
+  const handleEnter = () => {
+    playClickSound();
+    onEnter();
+  };
+
   const featureDetails: Record<string, { title: string, content: string }> = {
     [t.architecture]: {
       title: t.architecture,
@@ -88,8 +116,8 @@ function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language })
             <a href="#" className="hover:text-white transition-colors">{t.pricing}</a>
           </div>
           <button 
-            onClick={onEnter}
-            className="px-8 py-3 bg-purple-600 text-white font-bold text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all active:scale-95"
+            onClick={handleEnter}
+            className="px-6 py-2 bg-purple-600 text-white font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-purple-500 transition-all active:scale-95"
           >
             {t.launchApp}
           </button>
@@ -141,8 +169,8 @@ function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language })
               
               <div className="flex items-center gap-6">
                 <button 
-                  onClick={onEnter}
-                  className="px-10 py-5 bg-purple-600 text-white font-bold text-sm uppercase tracking-[0.2em] hover:bg-purple-500 transition-all shadow-[0_0_40px_rgba(168,85,247,0.3)]"
+                  onClick={handleEnter}
+                  className="px-8 py-4 bg-purple-600 text-white font-bold text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all shadow-[0_0_40px_rgba(168,85,247,0.3)] active:scale-95"
                 >
                   {t.startNow}
                 </button>
@@ -200,30 +228,37 @@ function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language })
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-zinc-900 border border-zinc-900">
-            {[
-              { title: t.architecture, desc: t.architectureDesc, icon: <Layers className="w-6 h-6" /> },
-              { title: t.uiDesignCard, desc: t.uiDesignDesc, icon: <LayoutTemplate className="w-6 h-6" /> },
-              { title: t.fullStack, desc: t.fullStackDesc, icon: <Terminal className="w-6 h-6" /> },
-              { title: t.optimization, desc: t.optimizationDesc, icon: <Settings2 className="w-6 h-6" /> }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i}
-                whileHover={{ backgroundColor: "#18181b" }}
-                onClick={() => setSelectedFeature(featureDetails[feature.title])}
-                className="bg-black p-12 space-y-8 transition-colors group cursor-pointer"
-              >
-                <div className="text-purple-500 group-hover:scale-110 transition-transform duration-300">
-                  {feature.icon}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold uppercase tracking-tight mb-2">{feature.title}</h3>
-                  <p className="text-zinc-500 text-sm font-medium">{feature.desc}</p>
-                </div>
-                <div className="pt-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-700 group-hover:text-purple-500 transition-colors">
-                  {t.learnMore} <Wand2 className="w-3 h-3" />
-                </div>
-              </motion.div>
-            ))}
+              { [
+                { title: t.architecture, desc: t.architectureDesc, icon: <Layers className="w-6 h-6" /> },
+                { title: t.uiDesignCard, desc: t.uiDesignDesc, icon: <LayoutTemplate className="w-6 h-6" /> },
+                { title: t.fullStack, desc: t.fullStackDesc, icon: <Terminal className="w-6 h-6" /> },
+                { title: t.optimization, desc: t.optimizationDesc, icon: <Settings2 className="w-6 h-6" /> }
+              ].map((feature, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ backgroundColor: "#18181b" }}
+                  onClick={() => {
+                    playClickSound();
+                    setSelectedFeature(featureDetails[feature.title]);
+                  }}
+                  className="bg-black p-12 space-y-8 transition-colors group cursor-pointer"
+                >
+                  <div className="text-purple-500 group-hover:scale-110 transition-transform duration-300">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold uppercase tracking-tight mb-2">{feature.title}</h3>
+                    <p className="text-zinc-500 text-sm font-medium">{feature.desc}</p>
+                  </div>
+                  <div className="pt-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-700 group-hover:text-purple-500 transition-colors">
+                    {t.learnMore} <Wand2 className="w-3 h-3" />
+                  </div>
+                </motion.div>
+              ))}
           </div>
         </div>
       </section>
@@ -246,7 +281,10 @@ function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language })
               className="relative bg-zinc-900 border-2 border-zinc-800 p-8 sm:p-12 max-w-lg w-full shadow-2xl"
             >
               <button 
-                onClick={() => setSelectedFeature(null)}
+                onClick={() => {
+                  playClickSound();
+                  setSelectedFeature(null);
+                }}
                 className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
               >
                 <X className="w-6 h-6" />
@@ -267,8 +305,11 @@ function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language })
                 </p>
                 
                 <button 
-                  onClick={() => setSelectedFeature(null)}
-                  className="w-full py-4 bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all"
+                  onClick={() => {
+                    playClickSound();
+                    setSelectedFeature(null);
+                  }}
+                  className="w-full py-4 bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all active:scale-95"
                 >
                   {lang === 'en' ? 'CLOSE' : 'סגור'}
                 </button>
@@ -494,6 +535,29 @@ function MainApp() {
   // API Key State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const playClickSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+      console.warn('Audio feedback not supported');
+    }
+  };
   const [lang, setLang] = useState<Language>(() => {
     const saved = localStorage.getItem('APP_LANG');
     return (saved as Language) || 'en';
@@ -512,6 +576,9 @@ function MainApp() {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
       setIsAuthReady(true);
+      if (!currentUser) {
+        setShowLanding(true);
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -954,16 +1021,22 @@ function MainApp() {
 
             <div className="flex bg-zinc-900 p-1 border border-zinc-800 scale-90 sm:scale-100">
               <button
-                onClick={() => setActiveTab('generate')}
-                className={`px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                onClick={() => {
+                  playClickSound();
+                  setActiveTab('generate');
+                }}
+                className={`px-4 sm:px-6 py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${
                   activeTab === 'generate' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'
                 }`}
               >
                 {t.header.generate}
               </button>
               <button
-                onClick={() => setActiveTab('saved')}
-                className={`px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                onClick={() => {
+                  playClickSound();
+                  setActiveTab('saved');
+                }}
+                className={`px-4 sm:px-6 py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${
                   activeTab === 'saved' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'
                 }`}
               >
@@ -985,7 +1058,10 @@ function MainApp() {
               </button>
 
               <button
-                onClick={logOut}
+                onClick={() => {
+                  playClickSound();
+                  logOut();
+                }}
                 className="flex items-center gap-3 text-zinc-500 hover:text-red-500 transition-all group"
                 title={t.header.signOut}
               >
@@ -1008,6 +1084,7 @@ function MainApp() {
               <div className="p-6 space-y-4">
                 <button
                   onClick={() => {
+                    playClickSound();
                     setIsSettingsOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
@@ -1018,6 +1095,7 @@ function MainApp() {
                 </button>
                 <button
                   onClick={() => {
+                    playClickSound();
                     logOut();
                     setIsMobileMenuOpen(false);
                   }}
@@ -1153,13 +1231,16 @@ function MainApp() {
                   )}
                 </AnimatePresence>
 
-                <div className="flex justify-end gap-6">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-6">
                   {(prompt || currentProject) && (
                     <button
                       type="button"
-                      onClick={handleReset}
+                      onClick={() => {
+                        playClickSound();
+                        handleReset();
+                      }}
                       disabled={isGenerating}
-                      className="flex items-center gap-3 bg-zinc-900 text-zinc-400 px-8 py-4 font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-zinc-800 transition-all border-2 border-zinc-800"
+                      className="flex items-center justify-center gap-3 bg-zinc-900 text-zinc-400 px-6 py-3 font-bold uppercase tracking-widest text-[9px] hover:text-white hover:bg-zinc-800 transition-all border-2 border-zinc-800 w-full sm:w-auto"
                     >
                       <RotateCcw className="w-4 h-4" />
                       {t.main.resetSystem}
@@ -1168,7 +1249,8 @@ function MainApp() {
                   <button
                     type="submit"
                     disabled={!prompt.trim() || isGenerating}
-                    className="flex items-center gap-4 bg-purple-600 text-white px-10 py-4 font-bold uppercase tracking-[0.2em] text-sm hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_30px_rgba(168,85,247,0.2)] active:scale-95"
+                    onClick={() => playClickSound()}
+                    className="flex items-center justify-center gap-4 bg-purple-600 text-white px-8 py-3 font-bold uppercase tracking-[0.2em] text-xs hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_30px_rgba(168,85,247,0.2)] active:scale-95 w-full sm:w-auto"
                   >
                     {isGenerating ? (
                       <>
