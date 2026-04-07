@@ -22,26 +22,46 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
   if (!apiKey || !apiKey.trim()) return false;
   
   try {
-    console.log(`[API Validation] Attempting with model: gemini-3-flash-preview`);
+    console.log(`[API Validation] Starting validation for key: ${apiKey.substring(0, 4)}...`);
     const ai = new GoogleGenAI({ apiKey });
     
-    // Correct usage according to SKILL.md: ai.models.generateContent
+    if (!ai || !ai.models) {
+      console.error("[API Validation] Failed to initialize GoogleGenAI or models property is missing.");
+      return false;
+    }
+    
+    console.log(`[API Validation] Calling ai.models.generateContent with gemini-3-flash-preview`);
+    
+    // Using a more structured request to be safe
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "test",
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Hello, are you active? Respond with 'yes'." }]
+        }
+      ],
+      config: {
+        maxOutputTokens: 10
+      }
     });
     
+    console.log(`[API Validation] Response received:`, response);
+    
     if (response && response.text) {
-      console.log(`[API Validation] Success with gemini-3-flash-preview`);
+      console.log(`[API Validation] Success! Response text: ${response.text}`);
       return true;
     }
+    
+    console.warn(`[API Validation] Response received but no text found.`);
     return false;
   } catch (error: any) {
-    console.error(`[API Validation] Failed:`, error?.message || error);
+    console.error(`[API Validation] CRITICAL ERROR during validation:`, error);
     
-    // If the specific model is not found, it might be a regional issue or access issue.
-    // However, the user wants gemini-3-flash-preview as the fixed model.
-    // We will report the failure clearly.
+    // Log specific error details if available
+    if (error?.message) console.error(`[API Validation] Error Message: ${error.message}`);
+    if (error?.status) console.error(`[API Validation] Error Status: ${error.status}`);
+    
     return false;
   }
 }

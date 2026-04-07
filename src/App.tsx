@@ -806,34 +806,40 @@ function MainApp() {
     setIsValidatingKey(true);
     setKeyValidationStatus('idle');
     
-    const isValid = await validateApiKey(manualApiKey);
-    
-    setIsValidatingKey(false);
-    if (isValid) {
-      localStorage.setItem('GEMINI_API_KEY', manualApiKey);
+    try {
+      const isValid = await validateApiKey(manualApiKey);
       
-      // Save to Firestore for persistence across devices
-      if (user) {
-        try {
-          await setDoc(doc(db, 'users', user.uid), {
-            userId: user.uid,
-            apiKey: manualApiKey,
-            updatedAt: serverTimestamp()
-          });
-        } catch (err) {
-          console.error("Failed to save key to Firestore:", err);
-          // Don't fail the whole process if Firestore save fails, as localStorage worked
+      setIsValidatingKey(false);
+      if (isValid) {
+        localStorage.setItem('GEMINI_API_KEY', manualApiKey);
+        
+        // Save to Firestore for persistence across devices
+        if (user) {
+          try {
+            await setDoc(doc(db, 'users', user.uid), {
+              userId: user.uid,
+              apiKey: manualApiKey,
+              updatedAt: serverTimestamp()
+            });
+          } catch (err) {
+            console.error("Failed to save key to Firestore:", err);
+          }
         }
+        
+        setKeyValidationStatus('success');
+        setTimeout(() => {
+          setIsSettingsOpen(false);
+          setKeyValidationStatus('idle');
+        }, 1500);
+      } else {
+        setKeyValidationStatus('error');
+        alert("ולידציה נכשלה: מפתח ה-API שהוזן אינו תקין, חסר הרשאות למודל gemini-3-flash-preview, או שיש בעיית תקשורת. בדוק את ה-Console בדפדפן לפרטים נוספים.");
       }
-      
-      setKeyValidationStatus('success');
-      setTimeout(() => {
-        setIsSettingsOpen(false);
-        setKeyValidationStatus('idle');
-      }, 1500);
-    } else {
+    } catch (err: any) {
+      setIsValidatingKey(false);
       setKeyValidationStatus('error');
-      alert("ולידציה נכשלה: מפתח ה-API שהוזן אינו תקין או שאין לו גישה למודל הנדרש.");
+      console.error("Validation process error:", err);
+      alert(`שגיאה בתהליך הולידציה: ${err.message || 'שגיאה לא ידועה'}. בדוק את ה-Console לפרטים.`);
     }
   };
 
