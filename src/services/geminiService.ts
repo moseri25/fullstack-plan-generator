@@ -3,16 +3,17 @@ import { Skill, GenerateOptions } from "../types";
 
 // Helper to get the AI instance with the current API key
 function getAI() {
+  // 1. First priority: The key the user entered in the UI (stored in localStorage)
   const manualKey = localStorage.getItem('GEMINI_API_KEY');
   
-  // In Vite/Vercel, environment variables must be prefixed with VITE_ to be accessible in the browser
+  // 2. Second priority: Fallback to environment variables (if provided by the developer)
   const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
   const envKey = process.env.GEMINI_API_KEY;
   
   const apiKey = manualKey || viteKey || envKey;
 
-  if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-    throw new Error("GEMINI_API_KEY is missing. Please set VITE_GEMINI_API_KEY in Vercel or your .env file.");
+  if (!apiKey || apiKey === 'undefined' || apiKey === 'null' || !apiKey.trim()) {
+    throw new Error("מפתח API חסר. נא להגדיר את מפתח ה-Gemini שלך בתפריט ההגדרות באתר.");
   }
 
   return new GoogleGenAI({ apiKey });
