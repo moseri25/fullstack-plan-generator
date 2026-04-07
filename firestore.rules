@@ -60,36 +60,21 @@ service cloud.firestore {
         request.resource.data[field].size() <= maxLen;
     }
 
-    function isValidSkill(skill) {
-      return skill is map &&
-             skill.keys().hasOnly(['id', 'title', 'content', 'tags']) &&
-             skill.keys().hasAll(['id', 'title', 'content']) &&
-             skill.id is string && skill.id.size() > 0 && skill.id.size() <= 100 &&
-             skill.title is string && skill.title.size() > 0 && skill.title.size() <= 100 &&
-             skill.content is string && skill.content.size() > 0 && skill.content.size() <= 50000 &&
-             (!('tags' in skill) || (skill.tags is list && skill.tags.size() <= 10));
-    }
-
-    function areValidSkills(skillsList) {
-      return skillsList is list && skillsList.size() <= 50 &&
-             skillsList.all(skill, isValidSkill(skill));
-    }
-
     function isValidProject() {
       return hasOnlyAllowedFields(['id', 'userId', 'prompt', 'title', 'createdAt', 'skills', 'audience', 'tone', 'numSkills', 'detailedPrompt', 'systemOptimization', 'skillChainOptimization', 'masterSkill']) &&
-             hasRequiredFields(['userId', 'prompt', 'title', 'createdAt', 'skills']) &&
+             hasRequiredFields(['userId', 'prompt', 'title', 'skills']) &&
              validStringLength('userId', 1, 100) &&
-             validStringLength('prompt', 1, 5000) &&
-             validStringLength('title', 1, 500) &&
-             (!('audience' in request.resource.data) || validStringLength('audience', 1, 200)) &&
-             (!('tone' in request.resource.data) || validStringLength('tone', 1, 200)) &&
+             validStringLength('prompt', 0, 50000) &&
+             validStringLength('title', 0, 5000) &&
+             (!('audience' in request.resource.data) || validStringLength('audience', 0, 1000)) &&
+             (!('tone' in request.resource.data) || validStringLength('tone', 0, 1000)) &&
              (!('numSkills' in request.resource.data) || request.resource.data.numSkills is number) &&
              (!('detailedPrompt' in request.resource.data) || request.resource.data.detailedPrompt is string) &&
              (!('systemOptimization' in request.resource.data) || request.resource.data.systemOptimization is string) &&
              (!('skillChainOptimization' in request.resource.data) || request.resource.data.skillChainOptimization is string) &&
              (!('masterSkill' in request.resource.data) || request.resource.data.masterSkill is string) &&
-             (request.resource.data.createdAt is timestamp || request.resource.data.createdAt == server.timestamp()) &&
-             areValidSkills(request.resource.data.skills);
+             (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp) &&
+             request.resource.data.skills is list && request.resource.data.skills.size() <= 100;
     }
 
     match /projects/{projectId} {
@@ -99,13 +84,8 @@ service cloud.firestore {
                        uidUnchanged();
       allow update: if isDocOwner() && 
                        isValidProject() && 
-                       uidNotModified() &&
-                       request.resource.data.createdAt == resource.data.createdAt;
+                       uidNotModified();
       allow delete: if isDocOwner();
-    }
-
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
     }
   }
 }

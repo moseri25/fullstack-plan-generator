@@ -11,7 +11,7 @@ import { saveAs } from 'file-saver';
 import ReactMarkdown from 'react-markdown';
 import { 
   collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, 
-  deleteDoc, doc, getDocs, writeBatch 
+  deleteDoc, doc, getDocs, writeBatch, setDoc 
 } from 'firebase/firestore';
 import { db, auth, signInWithGoogle, logOut, handleFirestoreError, OperationType } from './firebase';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -654,29 +654,61 @@ function MainApp() {
     }
     setIsSaving(true);
     try {
-      // Clean up project data to ensure it matches the schema and doesn't have an ID
-      const { id, ...cleanProject } = currentProject as any;
-      const projectData = {
-        ...cleanProject,
-        userId: user.uid, // Explicitly set userId from current user
+      // Clean up project data to ensure it matches the schema
+      const projectData: any = {
+        userId: user.uid,
+        prompt: currentProject.prompt || '',
         title: customTitle.trim(),
-        createdAt: serverTimestamp(),
+        audience: currentProject.audience || 'Intermediate',
+        tone: currentProject.tone || 'Professional',
+        numSkills: currentProject.numSkills || 5,
+        detailedPrompt: currentProject.detailedPrompt || '',
+        systemOptimization: currentProject.systemOptimization || '',
+        skillChainOptimization: currentProject.skillChainOptimization || '',
+        masterSkill: currentProject.masterSkill || '',
+        skills: currentProject.skills.map(s => ({
+          id: s.id,
+          title: s.title,
+          content: s.content,
+          tags: s.tags || []
+        }))
       };
+
+      if (currentProject.id) {
+        // Update existing project
+        const projectRef = doc(db, 'projects', currentProject.id);
+        await setDoc(projectRef, {
+          ...projectData,
+          createdAt: currentProject.createdAt // Preserve original creation date
+        }, { merge: true });
+        
+        showNotification(lang === 'en' ? 'Changes saved to archive.' : 'השינויים נשמרו בארכיון.', 'success');
+      } else {
+        // Create new project
+        const docRef = await addDoc(collection(db, 'projects'), {
+          ...projectData,
+          createdAt: serverTimestamp()
+        });
+        
+        // Update current project with the new ID so subsequent saves update it
+        setCurrentProject({
+          ...currentProject,
+          id: docRef.id,
+          title: customTitle.trim()
+        });
+        
+        showNotification(lang === 'en' ? 'Project archived successfully.' : 'הפרויקט נשמר בארכיון בהצלחה.', 'success');
+      }
       
-      await addDoc(collection(db, 'projects'), projectData);
       setSaveSuccess(true);
       setIsSaveModalOpen(false);
-      showNotification(lang === 'en' ? 'Project archived successfully.' : 'הפרויקט נשמר בארכיון בהצלחה.', 'success');
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error: any) {
       console.error("Save failed:", error);
-      showNotification(lang === 'en' ? `Failed to archive: ${error.message}` : `שמירה נכשלה: ${error.message}`, 'error');
-      // We still log to console for debugging
+      showNotification(lang === 'en' ? `Failed to save: ${error.message}` : `שמירה נכשלה: ${error.message}`, 'error');
       try {
-        handleFirestoreError(error, OperationType.CREATE, 'projects');
-      } catch (e) {
-        // handleFirestoreError throws, but we already showed a notification
-      }
+        handleFirestoreError(error, OperationType.WRITE, currentProject.id ? `projects/${currentProject.id}` : 'projects');
+      } catch (e) {}
     } finally {
       setIsSaving(false);
     }
@@ -1175,25 +1207,40 @@ function MainApp() {
                       <div className="mb-8 pb-8 border-b border-zinc-900 relative z-10">
                         <h3 className="text-xl font-bold text-white uppercase tracking-tighter italic mb-6 leading-tight">{currentProject.title}</h3>
                         <div className="flex flex-col gap-3">
-                          <button
-                            onClick={() => {
-                              if (!user) {
-                                showNotification(lang === 'en' ? 'Please sign in to archive projects.' : 'אנא התחבר כדי לשמור פרויקטים בארכיון.', 'error');
-                                return;
-                              }
-                              setCustomTitle(currentProject.title);
-                              setIsSaveModalOpen(true);
-                            }}
-                            disabled={isGenerating || isSaving || saveSuccess}
-                            className={`flex items-center justify-center gap-3 py-4 px-6 font-bold uppercase tracking-widest text-[10px] transition-all ${
-                              saveSuccess 
-                                ? 'bg-emerald-600/10 text-emerald-500 border-2 border-emerald-600/30' 
-                                : 'bg-zinc-900 text-zinc-400 border-2 border-zinc-800 hover:text-white hover:border-purple-600'
-                            }`}
-                          >
-                            {saveSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                            {saveSuccess ? t.main.archived : t.main.archiveProject}
-                          </button>
+                          {currentProject.id ? (
+                            <button
+                              onClick={saveProjectToFirebase}
+                              disabled={isGenerating || isSaving || saveSuccess}
+                              className={`flex items-center justify-center gap-3 py-4 px-6 font-bold uppercase tracking-widest text-[10px] transition-all ${
+                                saveSuccess 
+                                  ? 'bg-emerald-600/10 text-emerald-500 border-2 border-emerald-600/30' 
+                                  : 'bg-zinc-900 text-zinc-400 border-2 border-zinc-800 hover:text-white hover:border-purple-600'
+                              }`}
+                            >
+                              {saveSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                              {saveSuccess ? t.main.archived : (lang === 'en' ? 'SAVE CHANGES' : 'שמור שינויים')}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                if (!user) {
+                                  showNotification(lang === 'en' ? 'Please sign in to archive projects.' : 'אנא התחבר כדי לשמור פרויקטים בארכיון.', 'error');
+                                  return;
+                                }
+                                setCustomTitle(currentProject.title);
+                                setIsSaveModalOpen(true);
+                              }}
+                              disabled={isGenerating || isSaving || saveSuccess}
+                              className={`flex items-center justify-center gap-3 py-4 px-6 font-bold uppercase tracking-widest text-[10px] transition-all ${
+                                saveSuccess 
+                                  ? 'bg-emerald-600/10 text-emerald-500 border-2 border-emerald-600/30' 
+                                  : 'bg-zinc-900 text-zinc-400 border-2 border-zinc-800 hover:text-white hover:border-purple-600'
+                              }`}
+                            >
+                              {saveSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                              {saveSuccess ? t.main.archived : t.main.archiveProject}
+                            </button>
+                          )}
                           <button
                             onClick={() => downloadAllAsZip(currentProject)}
                             className="flex items-center justify-center gap-3 bg-purple-600 text-white py-4 px-6 font-bold uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)]"
