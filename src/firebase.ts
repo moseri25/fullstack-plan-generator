@@ -55,8 +55,9 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errMessage = error instanceof Error ? error.message : String(error);
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errMessage,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -74,5 +75,13 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     path
   }
   console.error('Firestore Error: ', JSON.stringify(errInfo));
+  
+  // Show a user-friendly alert with the error details
+  if (errMessage.includes('permission-denied') || errMessage.includes('insufficient permissions')) {
+    alert("שגיאת הרשאה: אין לך הרשאות לבצע פעולה זו. וודא שאתה מחובר.");
+  } else {
+    alert(`שגיאת מסד נתונים: ${errMessage}`);
+  }
+  
   throw new Error(JSON.stringify(errInfo));
 }

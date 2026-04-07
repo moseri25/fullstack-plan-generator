@@ -628,11 +628,28 @@ function MainApp() {
     if (!currentProject || !user || !customTitle.trim()) return;
     setIsSaving(true);
     try {
+      // Explicitly construct the project data to ensure only allowed fields are sent
       const projectData = {
-        ...currentProject,
+        userId: user.uid,
+        prompt: currentProject.prompt,
+        audience: currentProject.audience || 'Intermediate',
+        tone: currentProject.tone || 'Professional',
+        numSkills: currentProject.numSkills || 5,
         title: customTitle.trim(),
+        detailedPrompt: currentProject.detailedPrompt || '',
+        systemOptimization: currentProject.systemOptimization || '',
+        skillChainOptimization: currentProject.skillChainOptimization || '',
+        masterSkill: currentProject.masterSkill || '',
+        skills: currentProject.skills.map(s => ({
+          id: s.id,
+          title: s.title,
+          content: s.content,
+          tags: s.tags || []
+        })),
         createdAt: serverTimestamp(),
       };
+
+      console.log("Saving project data:", projectData);
       await addDoc(collection(db, 'projects'), projectData);
       setSaveSuccess(true);
       setIsSaveModalOpen(false);
