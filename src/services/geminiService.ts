@@ -6,12 +6,13 @@ function getAI() {
   // 1. First priority: The key the user entered in the UI (stored in localStorage)
   const manualKey = localStorage.getItem('GEMINI_API_KEY');
   
-  // 2. Second priority: Fallback to environment variables
-  // Note: process.env.GEMINI_API_KEY is defined in vite.config.ts for production/dev
-  const apiKey = manualKey || process.env.GEMINI_API_KEY;
+  // 2. Second priority: Fallback to environment variables (if provided by the developer)
+  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  const envKey = process.env.GEMINI_API_KEY;
+  
+  const apiKey = manualKey || viteKey || envKey;
 
   if (!apiKey || apiKey === 'undefined' || apiKey === 'null' || !apiKey.trim()) {
-    console.error("Gemini API Key is missing. Please configure it in settings.");
     throw new Error("מפתח API חסר. נא להגדיר את מפתח ה-Gemini שלך בתפריט ההגדרות באתר.");
   }
 
@@ -19,49 +20,15 @@ function getAI() {
 }
 
 export async function validateApiKey(apiKey: string): Promise<boolean> {
-  if (!apiKey || !apiKey.trim()) return false;
-  
   try {
-    console.log(`[API Validation] Starting validation for key: ${apiKey.substring(0, 4)}...`);
     const ai = new GoogleGenAI({ apiKey });
-    
-    if (!ai || !ai.models) {
-      console.error("[API Validation] Failed to initialize GoogleGenAI or models property is missing.");
-      return false;
-    }
-    
-    console.log(`[API Validation] Calling ai.models.generateContent with gemini-3-flash-preview`);
-    
-    // Using a more structured request to be safe
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: "Hello, are you active? Respond with 'yes'." }]
-        }
-      ],
-      config: {
-        maxOutputTokens: 10
-      }
+      contents: "Respond with 'ok' if you can read this.",
     });
-    
-    console.log(`[API Validation] Response received:`, response);
-    
-    if (response && response.text) {
-      console.log(`[API Validation] Success! Response text: ${response.text}`);
-      return true;
-    }
-    
-    console.warn(`[API Validation] Response received but no text found.`);
-    return false;
-  } catch (error: any) {
-    console.error(`[API Validation] CRITICAL ERROR during validation:`, error);
-    
-    // Log specific error details if available
-    if (error?.message) console.error(`[API Validation] Error Message: ${error.message}`);
-    if (error?.status) console.error(`[API Validation] Error Status: ${error.status}`);
-    
+    return response.text?.toLowerCase().includes('ok') ?? false;
+  } catch (error) {
+    console.error("API Key validation failed:", error);
     return false;
   }
 }
