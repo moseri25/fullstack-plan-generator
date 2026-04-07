@@ -44,7 +44,7 @@ export async function generateSkills(options: GenerateOptions): Promise<{
     const ai = getAI();
     // Step 1: Initial Generation
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview", // Use Pro for higher quality
+      model: "gemini-3-flash-preview", // Use Flash for better quota limits
       contents: `You are the Elite Vibe Coding Instructor. Your mission is to guide developers in building high-performance skills and architectural mastery through the "vibe coding" philosophy.
 Your expertise spans across high-performance distributed systems, cutting-edge frontend engineering, and elite UI/UX design.
 
@@ -157,7 +157,7 @@ Return the response as a JSON object with:
 
     // Step 2: Self-Correction / Refinement by an even more critical reviewer
     const reviewResponse = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3-flash-preview",
       contents: `You are a Senior Technical Reviewer and Quality Assurance Lead. 
 Review the following architectural plan for the project "${options.prompt}".
 
@@ -207,8 +207,11 @@ Return the IMPROVED list of skills as a JSON array of objects (id, title, conten
       skills: improvedSkills
     };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating skills:", error);
+    if (error.message?.includes('429') || error.message?.includes('quota')) {
+      throw new Error("API Quota Exceeded. The free tier of Gemini has limits. Please wait a minute and try again, or use a smaller number of skills.");
+    }
     throw error;
   }
 }
@@ -217,7 +220,7 @@ export async function refineSkill(skill: Skill, projectContext: string, refineme
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3-flash-preview",
       contents: `You are the Elite Vibe Coding Instructor.
 Project Context: "${projectContext}"
 
@@ -261,8 +264,11 @@ Return a JSON object with the updated "title", "content", and "tags".`,
       content: parsed.content,
       tags: parsed.tags
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error refining skill:", error);
+    if (error.message?.includes('429') || error.message?.includes('quota')) {
+      throw new Error("API Quota Exceeded. Please wait a minute and try again.");
+    }
     throw error;
   }
 }
