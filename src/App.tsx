@@ -522,7 +522,7 @@ function MainApp() {
   const [savedProjects, setSavedProjects] = useState<Project[]>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'saved'>('generate');
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
-  const [activeResultView, setActiveResultView] = useState<'skills' | 'detailedPrompt' | 'systemOptimization' | 'skillChain' | 'masterSkill' | 'fullView'>('skills');
+  const [activeResultView, setActiveResultView] = useState<'skills' | 'detailedPrompt' | 'systemOptimization' | 'skillChain' | 'masterSkill' | 'fullView' | 'executionGuide'>('skills');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -879,6 +879,27 @@ function MainApp() {
       zip.file('MASTER_SKILL.md', project.masterSkill);
       readmeContent += `- [Master Skill Orchestrator](./MASTER_SKILL.md)\n`;
     }
+
+    const executionProtocol = `# Master Execution Guide / מדריך ביצוע ראשי
+
+## 1. Initialize with Master Prompt / אתחול עם הנחיית העל
+Copy the "Full-Stack Blueprint" (DETAILED_PROMPT.md) and feed it to your development environment to set up the core architecture.
+העתק את "תוכנית העבודה המלאה" (DETAILED_PROMPT.md) והזן אותה לסביבת הפיתוח שלך כדי להקים את ארכיטקטורת הליבה.
+
+## 2. Execute Skill Chain / ביצוע שרשרת המיומנויות
+Follow the "Execution Roadmap" (SKILL_CHAIN_OPTIMIZATION.md) order. Apply each "Architectural Phase" one by one, ensuring dependencies are met.
+עקוב אחר סדר "מפת הדרכים לביצוע" (SKILL_CHAIN_OPTIMIZATION.md). החל כל "שלב ארכיטקטוני" אחד אחד, תוך הבטחה שכל התלויות מתקיימות.
+
+## 3. Apply Elite Optimizations / החלת אופטימיזציות עילית
+Use the "Performance Strategy" (SYSTEM_OPTIMIZATION.md) to harden security, optimize speed, and ensure scalability.
+השתמש ב"אסטרטגיית הביצועים" (SYSTEM_OPTIMIZATION.md) כדי להקשיח אבטחה, למטב מהירות ולהבטיח יכולת גדילה.
+
+## 4. Finalize with Orchestrator / סיום עם המתזמר
+Apply the "Master Orchestrator" (MASTER_SKILL.md) logic to connect all components into a cohesive, finished product.
+החל את לוגיקת "מתזמר העל" (MASTER_SKILL.md) כדי לחבר את כל הרכיבים למוצר מוגמר ומלוכד.`;
+
+    zip.file('EXECUTION_PROTOCOL.md', executionProtocol);
+    readmeContent += `- [Execution Protocol](./EXECUTION_PROTOCOL.md)\n`;
 
     readmeContent += `\n## Skills Breakdown\n`;
     project.skills.forEach((skill, index) => {
@@ -1360,6 +1381,7 @@ function MainApp() {
                             { id: 'systemOptimization', label: t.main.strategy, icon: <Settings2 className="w-4 h-4" /> },
                             { id: 'skillChain', label: t.main.roadmap, icon: <Code2 className="w-4 h-4" /> },
                             { id: 'masterSkill', label: t.main.orchestrator, icon: <Wand2 className="w-4 h-4" /> },
+                            { id: 'executionGuide', label: t.main.executionGuide, icon: <Sparkles className="w-4 h-4" /> },
                             { id: 'fullView', label: t.main.fullProjectView, icon: <MonitorPlay className="w-4 h-4" /> }
                           ].map((item) => (
                             <button
@@ -1666,6 +1688,99 @@ function MainApp() {
                           </div>
                           <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar bg-white">
                             <ReactMarkdown>{currentProject.masterSkill || ''}</ReactMarkdown>
+                          </div>
+                        </motion.div>
+                      ) : activeResultView === 'executionGuide' ? (
+                        <motion.div 
+                          key="execution-guide-view"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex flex-col h-full relative z-10"
+                        >
+                          <div className="p-8 sm:p-10 border-b border-zinc-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-30">
+                            <div className="flex items-center gap-6">
+                              <div className="p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+                                <Sparkles className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <h2 className="text-3xl font-semibold text-black uppercase tracking-tighter italic leading-none mb-3">{t.main.executionGuide}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">{t.main.guideTitle}</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const protocol = `# Master Execution Guide / מדריך ביצוע ראשי
+
+## 1. Initialize with Master Prompt / אתחול עם הנחיית העל
+Copy the "Full-Stack Blueprint" (DETAILED_PROMPT.md) and feed it to your development environment to set up the core architecture.
+העתק את "תוכנית העבודה המלאה" (DETAILED_PROMPT.md) והזן אותה לסביבת הפיתוח שלך כדי להקים את ארכיטקטורת הליבה.
+
+## 2. Execute Skill Chain / ביצוע שרשרת המיומנויות
+Follow the "Execution Roadmap" (SKILL_CHAIN_OPTIMIZATION.md) order. Apply each "Architectural Phase" one by one, ensuring dependencies are met.
+עקוב אחר סדר "מפת הדרכים לביצוע" (SKILL_CHAIN_OPTIMIZATION.md). החל כל "שלב ארכיטקטוני" אחד אחד, תוך הבטחה שכל התלויות מתקיימות.
+
+## 3. Apply Elite Optimizations / החלת אופטימיזציות עילית
+Use the "Performance Strategy" (SYSTEM_OPTIMIZATION.md) to harden security, optimize speed, and ensure scalability.
+השתמש ב"אסטרטגיית הביצועים" (SYSTEM_OPTIMIZATION.md) כדי להקשיח אבטחה, למטב מהירות ולהבטיח יכולת גדילה.
+
+## 4. Finalize with Orchestrator / סיום עם המתזמר
+Apply the "Master Orchestrator" (MASTER_SKILL.md) logic to connect all components into a cohesive, finished product.
+החל את לוגיקת "מתזמר העל" (MASTER_SKILL.md) כדי לחבר את כל הרכיבים למוצר מוגמר ומלוכד.`;
+                                downloadContent(protocol, 'execution_protocol.md');
+                              }}
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-50 border-2 border-zinc-100 py-3 px-6 hover:text-purple-600 hover:border-purple-600 transition-all"
+                            >
+                              <FileDown className="w-4 h-4" />
+                              <span className="hidden sm:inline">Export .MD</span>
+                            </button>
+                          </div>
+                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 custom-scrollbar bg-white space-y-16">
+                            <div className="space-y-8">
+                              <div className="flex items-center gap-4">
+                                <div className="h-[2px] w-12 bg-purple-600"></div>
+                                <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-purple-600">{t.main.guideTitle}</h2>
+                              </div>
+                              <p className="text-zinc-500 text-lg font-medium leading-relaxed max-w-3xl">
+                                {lang === 'en' 
+                                  ? 'Follow this elite protocol to transform your architectural specification into a production-ready system. Each step is designed to maintain system integrity and design excellence.'
+                                  : 'עקוב אחר פרוטוקול עילית זה כדי להפוך את המפרט הארכיטקטוני שלך למערכת מוכנה לייצור. כל שלב תוכנן לשמור על שלמות המערכת ומצוינות עיצובית.'}
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              {[
+                                { title: t.main.guideStep1, desc: t.main.guideStep1Desc, icon: <Terminal className="w-6 h-6" /> },
+                                { title: t.main.guideStep2, desc: t.main.guideStep2Desc, icon: <Layers className="w-6 h-6" /> },
+                                { title: t.main.guideStep3, desc: t.main.guideStep3Desc, icon: <Settings2 className="w-6 h-6" /> },
+                                { title: t.main.guideStep4, desc: t.main.guideStep4Desc, icon: <Wand2 className="w-6 h-6" /> }
+                              ].map((step, i) => (
+                                <div key={i} className="p-8 bg-zinc-50 border-2 border-zinc-100 space-y-6 group hover:border-purple-600 transition-all">
+                                  <div className="w-12 h-12 bg-black text-white flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                                    {step.icon}
+                                  </div>
+                                  <div className="space-y-3">
+                                    <h3 className="text-lg font-bold uppercase tracking-tight text-black">{step.title}</h3>
+                                    <p className="text-zinc-500 text-sm font-medium leading-relaxed">{step.desc}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="p-10 bg-black text-white space-y-6 relative overflow-hidden">
+                              <div className="absolute -right-10 -bottom-10 text-[10rem] font-bold opacity-[0.05] select-none pointer-events-none italic uppercase">
+                                ELITE
+                              </div>
+                              <div className="flex items-center gap-4 relative z-10">
+                                <Sparkles className="w-5 h-5 text-purple-500" />
+                                <h3 className="text-xs font-bold uppercase tracking-[0.3em]">{t.main.technicalSpec}</h3>
+                              </div>
+                              <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-2xl relative z-10">
+                                {lang === 'en' 
+                                  ? 'This protocol ensures that every architectural component is implemented in the correct sequence, maintaining system integrity and elite design standards.'
+                                  : 'פרוטוקול זה מבטיח שכל רכיב ארכיטקטוני ייושם ברצף הנכון, תוך שמירה על שלמות המערכת וסטנדרטים של עיצוב עילית.'}
+                              </p>
+                            </div>
                           </div>
                         </motion.div>
                       ) : (

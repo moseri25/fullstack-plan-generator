@@ -126,7 +126,17 @@ export const translations = {
       skillChainLogic: 'Skill Chain Logic',
       ultimateSystemLogic: 'Ultimate System Logic',
       fullProjectView: 'FULL PROJECT VIEW',
-      allComponents: 'ALL ARCHITECTURAL COMPONENTS'
+      allComponents: 'ALL ARCHITECTURAL COMPONENTS',
+      executionGuide: 'Execution Protocol',
+      guideTitle: 'Master Execution Guide',
+      guideStep1: '1. Initialize with Master Prompt',
+      guideStep1Desc: 'Copy the "Full-Stack Blueprint" and feed it to your development environment to set up the core architecture.',
+      guideStep2: '2. Execute Skill Chain',
+      guideStep2Desc: 'Follow the "Execution Roadmap" order. Apply each "Architectural Phase" one by one, ensuring dependencies are met.',
+      guideStep3: '3. Apply Elite Optimizations',
+      guideStep3Desc: 'Use the "Performance Strategy" to harden security, optimize speed, and ensure scalability.',
+      guideStep4: '4. Finalize with Orchestrator',
+      guideStep4Desc: 'Apply the "Master Orchestrator" logic to connect all components into a cohesive, finished product.'
     },
     modals: {
       apiConfig: 'API Configuration',
@@ -304,7 +314,17 @@ export const translations = {
       skillChainLogic: 'לוגיקת שרשרת מיומנויות',
       ultimateSystemLogic: 'לוגיקת מערכת סופית',
       fullProjectView: 'תצוגת פרויקט מלאה',
-      allComponents: 'כל המרכיבים הארכיטקטוניים'
+      allComponents: 'כל המרכיבים הארכיטקטוניים',
+      executionGuide: 'פרוטוקול ביצוע',
+      guideTitle: 'מדריך ביצוע ראשי',
+      guideStep1: '1. אתחול עם הנחיית העל',
+      guideStep1Desc: 'העתק את "תוכנית העבודה המלאה" והזן אותה לסביבת הפיתוח שלך כדי להקים את ארכיטקטורת הליבה.',
+      guideStep2: '2. ביצוע שרשרת המיומנויות',
+      guideStep2Desc: 'עקוב אחר סדר "מפת הדרכים לביצוע". החל כל "שלב ארכיטקטוני" אחד אחד, תוך הבטחה שכל התלויות מתקיימות.',
+      guideStep3: '3. החלת אופטימיזציות עילית',
+      guideStep3Desc: 'השתמש ב"אסטרטגיית הביצועים" כדי להקשיח אבטחה, למטב מהירות ולהבטיח יכולת גדילה.',
+      guideStep4: '4. סיום עם המתזמר',
+      guideStep4Desc: 'החל את לוגיקת "מתזמר העל" כדי לחבר את כל הרכיבים למוצר מוגמר ומלוכד.'
     },
     modals: {
       apiConfig: 'הגדרות API',
