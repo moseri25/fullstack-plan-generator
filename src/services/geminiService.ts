@@ -21,37 +21,29 @@ function getAI() {
 export async function validateApiKey(apiKey: string): Promise<boolean> {
   if (!apiKey || !apiKey.trim()) return false;
   
-  // List of models to try for validation, from most preferred to most stable
-  const modelsToTry = [
-    "gemini-3-flash-preview",
-    "gemini-flash-latest",
-    "gemini-3.1-flash-lite-preview"
-  ];
-
-  for (const modelName of modelsToTry) {
-    try {
-      console.log(`[API Validation] Attempting with model: ${modelName}`);
-      const ai = new GoogleGenAI({ apiKey });
-      const model = ai.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent("test");
-      const response = await result.response;
-      const text = response.text();
-      
-      if (text) {
-        console.log(`[API Validation] Success with model: ${modelName}`);
-        return true;
-      }
-    } catch (error: any) {
-      console.warn(`[API Validation] Failed for ${modelName}:`, error?.message || error);
-      // If it's a 403 or 400, it might be a key issue rather than a model issue
-      if (error?.message?.includes('403') || error?.message?.includes('400')) {
-        console.error("[API Validation] Critical error (403/400) - likely invalid key or restriction.");
-      }
+  try {
+    console.log(`[API Validation] Attempting with model: gemini-3-flash-preview`);
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Correct usage according to SKILL.md: ai.models.generateContent
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: "test",
+    });
+    
+    if (response && response.text) {
+      console.log(`[API Validation] Success with gemini-3-flash-preview`);
+      return true;
     }
+    return false;
+  } catch (error: any) {
+    console.error(`[API Validation] Failed:`, error?.message || error);
+    
+    // If the specific model is not found, it might be a regional issue or access issue.
+    // However, the user wants gemini-3-flash-preview as the fixed model.
+    // We will report the failure clearly.
+    return false;
   }
-
-  console.error("All API key validation attempts failed.");
-  return false;
 }
 
 export async function generateSkills(options: GenerateOptions): Promise<{ 
