@@ -42,9 +42,10 @@ export async function generateSkills(options: GenerateOptions): Promise<{
 }> {
   try {
     const ai = getAI();
-    // Step 1: Initial Generation
+    
+    // Optimized: Single high-quality call instead of multiple calls to save API quota
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", // Use Flash for better quota limits
+      model: "gemini-3-flash-preview", 
       contents: `You are the Elite Vibe Coding Instructor. Your mission is to guide developers in building high-performance skills and architectural mastery through the "vibe coding" philosophy.
 Your expertise spans across high-performance distributed systems, cutting-edge frontend engineering, and elite UI/UX design.
 
@@ -56,6 +57,8 @@ Tone: ${options.tone}
 Number of Skills to Generate: ${options.numSkills}
 
 Your task is to architect this project at a professional, production-ready level while maintaining the "vibe coding" spirit—fast, intuitive, and powerful.
+Avoid all generic, bland, or "tutorial-style" content. Every skill must represent absolute industry best practices.
+
 Break down the project into exactly ${options.numSkills} elite "skills" or architectural phases.
 Cover the entire lifecycle: 
 1. High-Level Architecture & System Design (DDD, Clean Architecture, Scalability)
@@ -65,10 +68,10 @@ Cover the entire lifecycle:
 5. Infrastructure & DevOps (CI/CD, Observability, Cloud-Native patterns)
 
 In addition to the skills, you MUST generate:
-1. "detailedPrompt": A master-level, full-stack prompt. This should be a comprehensive "Project Specification" that an elite AI or developer can use to build the entire system. Include data models, API contracts, and design tokens.
-2. "systemOptimization": A deep-dive technical optimization strategy. Focus on low-latency, high-availability, security hardening, and cost-efficiency.
-3. "skillChainOptimization": A strategic execution roadmap. Explain the dependency graph of the skills, why this specific order is critical for a professional build, and how each phase feeds into the next.
-4. "masterSkill": A meta-prompt or "Skill Master". This is the ultimate orchestrator skill that provides precise instructions to an AI model on *when* and *how* to use the other generated skills to achieve optimal, full-stack, production-level development. It should conquer all the skills created and guide the AI to a state of optimal development.
+1. "detailedPrompt": A master-level, full-stack prompt (markdown).
+2. "systemOptimization": A deep-dive technical optimization strategy (markdown).
+3. "skillChainOptimization": A strategic execution roadmap and dependency graph (markdown).
+4. "masterSkill": The ultimate orchestrator skill instructions (markdown).
 
 STRICT INSTRUCTOR RULES:
 1. NO GENERIC ADVICE. Be hyper-specific to the project's unique challenges.
@@ -78,17 +81,7 @@ STRICT INSTRUCTOR RULES:
 5. VIBE CODING: Infuse the content with the energy of "vibe coding"—focus on flow, intuition, and high-impact results.
 6. LANGUAGE: The response from the model must always be in English, regardless of the input language.
 
-Return the response as a JSON object with:
-1. "title": A sophisticated, professional title for the project.
-2. "detailedPrompt": The master-level full-stack prompt (markdown).
-3. "systemOptimization": The technical optimization strategy (markdown).
-4. "skillChainOptimization": The strategic execution roadmap (markdown).
-5. "masterSkill": The ultimate orchestrator skill instructions (markdown).
-6. "skills": An array of objects, each with:
-   - "id": A unique, semantic string ID.
-   - "title": A professional, high-level name for the skill.
-   - "content": The elite-level markdown content. Use professional headings, clear technical requirements, and high-quality code examples.
-   - "tags": An array of 3-6 relevant keywords or technologies (e.g., "React", "Node.js", "System Design").`,
+Return the response as a JSON object with the following structure:`,
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
@@ -131,7 +124,7 @@ Return the response as a JSON object with:
                   },
                   content: {
                     type: Type.STRING,
-                    description: "The elite-level markdown content for this skill.",
+                    description: "The elite-level markdown content for this skill. Include Technical Requirements and Architectural Notes.",
                   },
                   tags: {
                     type: Type.ARRAY,
@@ -153,64 +146,12 @@ Return the response as a JSON object with:
     const text = response.text;
     if (!text) throw new Error("No response from AI");
     
-    const parsed = JSON.parse(text);
-
-    // Step 2: Self-Correction / Refinement by an even more critical reviewer
-    const reviewResponse = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `You are a Senior Technical Reviewer and Quality Assurance Lead. 
-Review the following architectural plan for the project "${options.prompt}".
-
-Current Skills JSON:
-${JSON.stringify(parsed.skills, null, 2)}
-
-Your task is to ELIMINATE BLANDNESS and GENERIC CONTENT.
-1. If a skill feels like a generic tutorial, rewrite it to be a professional engineering specification.
-2. Ensure every skill has a "Technical Requirements" section and a "Professional Tip" or "Architectural Note".
-3. Improve the visual hierarchy of the markdown. Use bolding, lists, and code blocks effectively.
-4. Ensure the code examples are of the highest quality (Type-safe, modern patterns).
-5. Verify that the tone is "${options.tone}" and the depth matches "${options.audience}".
-6. LANGUAGE: The response from the model must always be in English, regardless of the input language.
-
-Return the IMPROVED list of skills as a JSON array of objects (id, title, content, tags).`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              title: { type: Type.STRING },
-              content: { type: Type.STRING },
-              tags: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING }
-              }
-            },
-            required: ["id", "title", "content", "tags"],
-          },
-        },
-      },
-    });
-
-    const reviewText = reviewResponse.text;
-    if (!reviewText) return parsed; // Fallback to original if review fails
-
-    const improvedSkills = JSON.parse(reviewText);
-    return {
-      title: parsed.title,
-      detailedPrompt: parsed.detailedPrompt,
-      systemOptimization: parsed.systemOptimization,
-      skillChainOptimization: parsed.skillChainOptimization,
-      masterSkill: parsed.masterSkill,
-      skills: improvedSkills
-    };
+    return JSON.parse(text);
 
   } catch (error: any) {
     console.error("Error generating skills:", error);
     if (error.message?.includes('429') || error.message?.includes('quota')) {
-      throw new Error("API Quota Exceeded. The free tier of Gemini has limits. Please wait a minute and try again, or use a smaller number of skills.");
+      throw new Error("API Quota Exceeded. The free tier of Gemini has limits. Please wait a minute and try again.");
     }
     throw error;
   }
