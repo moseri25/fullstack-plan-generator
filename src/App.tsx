@@ -520,8 +520,7 @@ function MainApp() {
 
     const q = query(
       collection(db, 'projects'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -529,6 +528,14 @@ function MainApp() {
       snapshot.forEach((doc) => {
         projectsData.push({ id: doc.id, ...doc.data() } as Project);
       });
+      
+      // Sort in memory to avoid composite index requirement
+      projectsData.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : (a.createdAt as any)?.seconds * 1000 || 0;
+        const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : (b.createdAt as any)?.seconds * 1000 || 0;
+        return dateB - dateA;
+      });
+
       setSavedProjects(projectsData);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'projects');
@@ -1122,6 +1129,10 @@ function MainApp() {
                         <div className="flex flex-col gap-3">
                           <button
                             onClick={() => {
+                              if (!user) {
+                                alert(lang === 'en' ? 'Please sign in to archive projects.' : 'אנא התחבר כדי לשמור פרויקטים בארכיון.');
+                                return;
+                              }
                               setCustomTitle(currentProject.title);
                               setIsSaveModalOpen(true);
                             }}
