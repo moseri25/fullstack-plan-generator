@@ -28,7 +28,48 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
   }
 }
 
-export async function generateSkills(options: GenerateOptions): Promise<{ 
+export interface RequirementAnalysis {
+  requirements: string[];
+  edgeCases: string[];
+  clarifyingQuestions: string[];
+  suggestedStack: string[];
+}
+
+export async function analyzeRequirements(prompt: string): Promise<RequirementAnalysis> {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `You are the Elite Architect. Your goal is to perform a deep technical analysis of a project request to ensure no detail is missed.
+Project Request: "${prompt}"
+
+Analyze this request and identify:
+1. Core Functional Requirements (Deep dive).
+2. Critical Edge Cases & Potential Technical Debt.
+3. Clarifying Questions (If any part of the request is ambiguous).
+4. Suggested Elite Tech Stack (Modern, high-performance).
+
+Return a JSON object with: "requirements" (array), "edgeCases" (array), "clarifyingQuestions" (array), "suggestedStack" (array).`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          requirements: { type: Type.ARRAY, items: { type: Type.STRING } },
+          edgeCases: { type: Type.ARRAY, items: { type: Type.STRING } },
+          clarifyingQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+          suggestedStack: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: ["requirements", "edgeCases", "clarifyingQuestions", "suggestedStack"],
+      },
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Analysis failed");
+  return JSON.parse(text);
+}
+
+export async function generateSkills(options: GenerateOptions, analysis?: RequirementAnalysis): Promise<{ 
   title: string, 
   skills: Skill[], 
   detailedPrompt: string, 
@@ -38,6 +79,13 @@ export async function generateSkills(options: GenerateOptions): Promise<{
 }> {
   const ai = getAI();
   
+  const analysisContext = analysis ? `
+TECHNICAL ANALYSIS CONTEXT:
+Requirements: ${analysis.requirements.join(', ')}
+Edge Cases: ${analysis.edgeCases.join(', ')}
+Suggested Stack: ${analysis.suggestedStack.join(', ')}
+` : '';
+
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview", 
     contents: `You are the Elite Vibe Coding Instructor. Your mission is to guide developers in building high-performance skills and architectural mastery through the "vibe coding" philosophy.
@@ -45,6 +93,7 @@ Your expertise spans across high-performance distributed systems, cutting-edge f
 
 The student wants to build the following project:
 "${options.prompt}"
+${analysisContext}
 
 Target Audience: ${options.audience}
 Tone: ${options.tone}
@@ -140,6 +189,53 @@ Return the response as a JSON object with the following structure:`,
   if (!text) throw new Error("No response from AI");
   
   return JSON.parse(text);
+}
+
+export async function enrichSkills(skills: Skill[], projectContext: string): Promise<Skill[]> {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `You are the Elite Quality Assurance Architect. 
+Project Context: "${projectContext}"
+
+Review the following architectural skills and ENRICH them with:
+1. Advanced Implementation Details (Specific code patterns, library suggestions).
+2. Security Hardening (Specific threats and mitigations).
+3. Performance Optimizations (Caching, lazy loading, indexing).
+4. Accessibility & UX Best Practices.
+
+Skills to enrich:
+${JSON.stringify(skills)}
+
+Return a JSON object with an "enrichedSkills" array containing the updated skills. Maintain the same IDs.`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          enrichedSkills: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                content: { type: Type.STRING },
+                tags: { type: Type.ARRAY, items: { type: Type.STRING } }
+              },
+              required: ["id", "title", "content", "tags"]
+            }
+          }
+        },
+        required: ["enrichedSkills"],
+      },
+    },
+  });
+
+  const text = response.text;
+  if (!text) return skills;
+  const parsed = JSON.parse(text);
+  return parsed.enrichedSkills;
 }
 
 export async function refineSkill(skill: Skill, projectContext: string, refinementPrompt: string): Promise<Skill> {

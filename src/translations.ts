@@ -53,6 +53,9 @@ export const translations = {
       mapping: 'MAPPING TECHNICAL DEPENDENCIES...',
       generating: 'GENERATING SYSTEM BLUEPRINTS...',
       finalizing: 'FINALIZING SPECIFICATION...',
+      analyzingRequirements: 'ANALYZING REQUIREMENTS...',
+      architectingComponents: 'ARCHITECTING COMPONENTS...',
+      eliteRefinement: 'ELITE REFINEMENT...',
       steps: [
         { title: "Analyzing Vision", description: "Deconstructing your prompt into core architectural requirements." },
         { title: "Architecting System", description: "Designing a high-performance, scalable distributed system architecture." },
@@ -228,6 +231,9 @@ export const translations = {
       mapping: 'ממפה תלויות טכניות...',
       generating: 'יוצר תוכניות מערכת...',
       finalizing: 'מסיים מפרט...',
+      analyzingRequirements: 'מנתח דרישות...',
+      architectingComponents: 'בונה ארכיטקטורת רכיבים...',
+      eliteRefinement: 'שיפור ודיוק עילית...',
       steps: [
         { title: "מנתח חזון", description: "מפרק את ההנחיה שלך לדרישות ארכיטקטוניות ליבה." },
         { title: "בונה ארכיטקטורה", description: "מעצב ארכיטקטורת מערכת מבוזרת בעלת ביצועים גבוהים וניתנת להרחבה." },

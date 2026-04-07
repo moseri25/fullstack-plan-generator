@@ -15,7 +15,10 @@ import {
 } from 'firebase/firestore';
 import { db, auth, signInWithGoogle, logOut, handleFirestoreError, OperationType } from './firebase';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { generateSkills, refineSkill, validateApiKey } from './services/geminiService';
+import { 
+  generateSkills, refineSkill, validateApiKey, 
+  analyzeRequirements, enrichSkills, RequirementAnalysis 
+} from './services/geminiService';
 import { Skill, Project } from './types';
 import { translations, Language } from './translations';
 
@@ -396,7 +399,7 @@ function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language })
   );
 }
 
-function LoadingState({ lang }: { lang: Language }) {
+function LoadingState({ lang, generationStage }: { lang: Language, generationStage: 'idle' | 'analyzing' | 'architecting' | 'refining' }) {
   const t = translations[lang].loading;
   const [step, setStep] = React.useState(0);
   const currentT = translations[lang].loading;
@@ -487,7 +490,10 @@ function LoadingState({ lang }: { lang: Language }) {
         
         <div className="flex items-center gap-3 text-xs font-bold text-purple-500 uppercase tracking-[0.4em]">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Elite Engine Running
+          {generationStage === 'analyzing' && t.analyzingRequirements}
+          {generationStage === 'architecting' && t.architectingComponents}
+          {generationStage === 'refining' && t.eliteRefinement}
+          {generationStage === 'idle' && "Elite Engine Running"}
         </div>
       </div>
     </motion.div>
@@ -511,6 +517,7 @@ function MainApp() {
   const [isRefining, setIsRefining] = useState(false);
   
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStage, setGenerationStage] = useState<'idle' | 'analyzing' | 'architecting' | 'refining'>('idle');
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [savedProjects, setSavedProjects] = useState<Project[]>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'saved'>('generate');
@@ -625,17 +632,28 @@ function MainApp() {
     }
 
     setIsGenerating(true);
+    setGenerationStage('analyzing');
     setCurrentProject(null);
     setSelectedSkill(null);
     setSaveSuccess(false);
 
     try {
+      // Stage 1: Deep Requirement Analysis
+      const analysis = await analyzeRequirements(prompt);
+      
+      // Stage 2: Core Architectural Generation
+      setGenerationStage('architecting');
       const result = await generateSkills({
         prompt,
         audience,
         tone,
         numSkills
-      });
+      }, analysis);
+
+      // Stage 3: Elite Refinement & Hardening
+      setGenerationStage('refining');
+      const enrichedSkills = await enrichSkills(result.skills, prompt);
+
       setCurrentProject({
         userId: user.uid,
         prompt: prompt,
@@ -648,10 +666,10 @@ function MainApp() {
         skillChainOptimization: result.skillChainOptimization,
         masterSkill: result.masterSkill,
         createdAt: new Date(),
-        skills: result.skills
+        skills: enrichedSkills
       });
-      if (result.skills.length > 0) {
-        setSelectedSkill(result.skills[0]);
+      if (enrichedSkills.length > 0) {
+        setSelectedSkill(enrichedSkills[0]);
       }
       setActiveResultView('skills');
     } catch (error: any) {
@@ -660,6 +678,7 @@ function MainApp() {
       showNotification(lang === 'en' ? `Failed to generate skills: ${errorMessage}` : `יצירת מיומנויות נכשלה: ${errorMessage}`, 'error');
     } finally {
       setIsGenerating(false);
+      setGenerationStage('idle');
     }
   };
 
@@ -1271,7 +1290,7 @@ function MainApp() {
             {/* Results Area */}
             <AnimatePresence mode="wait">
               {isGenerating ? (
-                <LoadingState key="loading-state" lang={lang} />
+                <LoadingState key="loading-state" lang={lang} generationStage={generationStage} />
               ) : currentProject && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
