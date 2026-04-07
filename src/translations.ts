@@ -121,7 +121,9 @@ export const translations = {
       masterImplementation: 'Master Implementation Prompt',
       optimizationScaling: 'Optimization & Scaling',
       skillChainLogic: 'Skill Chain Logic',
-      ultimateSystemLogic: 'Ultimate System Logic'
+      ultimateSystemLogic: 'Ultimate System Logic',
+      fullProjectView: 'FULL PROJECT VIEW',
+      allComponents: 'ALL ARCHITECTURAL COMPONENTS'
     },
     modals: {
       apiConfig: 'API Configuration',
@@ -294,7 +296,9 @@ export const translations = {
       masterImplementation: 'הנחיית יישום ראשית',
       optimizationScaling: 'אופטימיזציה וגדילה',
       skillChainLogic: 'לוגיקת שרשרת מיומנויות',
-      ultimateSystemLogic: 'לוגיקת מערכת סופית'
+      ultimateSystemLogic: 'לוגיקת מערכת סופית',
+      fullProjectView: 'תצוגת פרויקט מלאה',
+      allComponents: 'כל המרכיבים הארכיטקטוניים'
     },
     modals: {
       apiConfig: 'הגדרות API',

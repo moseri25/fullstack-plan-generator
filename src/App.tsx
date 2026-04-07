@@ -474,7 +474,7 @@ function MainApp() {
   const [savedProjects, setSavedProjects] = useState<Project[]>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'saved'>('generate');
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
-  const [activeResultView, setActiveResultView] = useState<'skills' | 'detailedPrompt' | 'systemOptimization' | 'skillChain' | 'masterSkill'>('skills');
+  const [activeResultView, setActiveResultView] = useState<'skills' | 'detailedPrompt' | 'systemOptimization' | 'skillChain' | 'masterSkill' | 'fullView'>('skills');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -1152,7 +1152,8 @@ function MainApp() {
                             { id: 'detailedPrompt', label: t.main.blueprint, icon: <Terminal className="w-4 h-4" /> },
                             { id: 'systemOptimization', label: t.main.strategy, icon: <Settings2 className="w-4 h-4" /> },
                             { id: 'skillChain', label: t.main.roadmap, icon: <Code2 className="w-4 h-4" /> },
-                            { id: 'masterSkill', label: t.main.orchestrator, icon: <Wand2 className="w-4 h-4" /> }
+                            { id: 'masterSkill', label: t.main.orchestrator, icon: <Wand2 className="w-4 h-4" /> },
+                            { id: 'fullView', label: t.main.fullProjectView, icon: <MonitorPlay className="w-4 h-4" /> }
                           ].map((item) => (
                             <button
                               key={item.id}
@@ -1234,8 +1235,8 @@ function MainApp() {
                   </div>
 
                   {/* Main Content: Skill Details */}
-                  <div className="flex-1 bg-black border-2 border-zinc-900 flex flex-col overflow-hidden relative">
-                    <div className="absolute -right-20 -bottom-20 text-[20rem] font-bold opacity-[0.01] select-none pointer-events-none italic uppercase hidden sm:block">
+                  <div className="flex-1 bg-white border-2 border-zinc-200 flex flex-col overflow-hidden relative shadow-2xl">
+                    <div className="absolute -right-20 -bottom-20 text-[20rem] font-bold opacity-[0.03] select-none pointer-events-none italic uppercase hidden sm:block text-zinc-100">
                       CORE
                     </div>
                     
@@ -1250,20 +1251,20 @@ function MainApp() {
                         >
                           {selectedSkill ? (
                             <>
-                              <div className="p-4 sm:p-10 border-b border-zinc-900 flex items-center justify-between bg-black/50 backdrop-blur-xl">
+                              <div className="p-4 sm:p-10 border-b border-zinc-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-30">
                                 <div className="flex items-center gap-4 sm:gap-6">
                                   <div className="p-3 sm:p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
                                     {getIconForSkill(selectedSkill.title)}
                                   </div>
                                   <div>
-                                    <h2 className="text-xl sm:text-3xl font-bold text-white uppercase tracking-tighter italic leading-none mb-2 sm:mb-3">{selectedSkill.title}</h2>
+                                    <h2 className="text-xl sm:text-3xl font-bold text-black uppercase tracking-tighter italic leading-none mb-2 sm:mb-3">{selectedSkill.title}</h2>
                                     <div className="flex items-center gap-4">
-                                      <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.3em]">{t.main.technicalSpec}</p>
+                                      <p className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em]">{t.main.technicalSpec}</p>
                                       {selectedSkill.tags && selectedSkill.tags.length > 0 && (
                                         <div className="hidden sm:flex items-center gap-2">
                                           <div className="w-1 h-1 bg-purple-500"></div>
                                           {selectedSkill.tags.map(tag => (
-                                            <span key={tag} className="text-[9px] px-2 py-1 bg-purple-600/10 text-purple-500 font-bold uppercase tracking-widest">
+                                            <span key={tag} className="text-[9px] px-2 py-1 bg-purple-600/10 text-purple-600 font-bold uppercase tracking-widest">
                                               {tag}
                                             </span>
                                           ))}
@@ -1274,23 +1275,23 @@ function MainApp() {
                                 </div>
                                 <button
                                   onClick={() => downloadSkillAsZip(selectedSkill)}
-                                  className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-2 sm:py-3 px-4 sm:px-6 hover:text-white hover:border-purple-600 transition-all"
+                                  className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-50 border-2 border-zinc-100 py-2 sm:py-3 px-4 sm:px-6 hover:text-purple-600 hover:border-purple-600 transition-all"
                                 >
                                   <FileArchive className="w-4 h-4" />
                                   <span className="hidden sm:inline">{t.main.download}</span>
                                 </button>
                               </div>
                               
-                              <div className="p-6 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar relative">
+                              <div className="p-6 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar relative bg-white">
                                 {isRefining && (
-                                  <div className="absolute inset-0 z-20 bg-black/80 backdrop-blur-md flex items-center justify-center">
-                                    <div className="flex flex-col items-center gap-6 bg-zinc-900 p-12 border-2 border-purple-600/30 shadow-[0_0_50px_rgba(168,85,247,0.1)]">
+                                  <div className="absolute inset-0 z-20 bg-white/90 backdrop-blur-md flex items-center justify-center">
+                                    <div className="flex flex-col items-center gap-6 bg-white p-12 border-2 border-purple-600/30 shadow-[0_0_50px_rgba(168,85,247,0.1)]">
                                       <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(168,85,247,0.4)]">
                                         <Wand2 className="w-8 h-8 animate-pulse" />
                                       </div>
                                       <div className="text-center space-y-2">
-                                        <p className="font-bold text-white uppercase tracking-widest text-sm italic">{t.main.refiningArch}</p>
-                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{t.main.applyingAdjustments}</p>
+                                        <p className="font-bold text-black uppercase tracking-widest text-sm italic">{t.main.refiningArch}</p>
+                                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em]">{t.main.applyingAdjustments}</p>
                                       </div>
                                     </div>
                                   </div>
@@ -1299,7 +1300,7 @@ function MainApp() {
                               </div>
 
                               {/* Refinement Area */}
-                              <div className="p-6 bg-zinc-900/50 border-t border-zinc-900">
+                              <div className="p-6 bg-zinc-50 border-t border-zinc-100">
                                 <div className="flex gap-4">
                                   <div className="relative flex-1">
                                     <input
@@ -1308,7 +1309,7 @@ function MainApp() {
                                       onChange={(e) => setRefinementPrompt(e.target.value)}
                                       dir={/[\u0590-\u05FF]/.test(refinementPrompt) ? 'rtl' : 'ltr'}
                                       placeholder={t.main.describeRefinement}
-                                      className="w-full bg-black border-2 border-zinc-800 px-6 py-4 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-800"
+                                      className="w-full bg-white border-2 border-zinc-200 px-6 py-4 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-300 text-black"
                                       disabled={isRefining}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && refinementPrompt.trim() && !isRefining) {
@@ -1334,9 +1335,9 @@ function MainApp() {
                               </div>
                             </>
                           ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-zinc-800 p-12 text-center">
+                            <div className="flex-1 flex flex-col items-center justify-center text-zinc-200 p-12 text-center">
                               <Code2 className="w-24 h-24 mb-8 opacity-10" />
-                              <p className="font-bold uppercase tracking-[0.3em] text-sm italic">{t.main.selectPhase}</p>
+                              <p className="font-bold uppercase tracking-[0.3em] text-sm italic text-zinc-400">{t.main.selectPhase}</p>
                             </div>
                           )}
                         </motion.div>
@@ -1348,25 +1349,25 @@ function MainApp() {
                           exit={{ opacity: 0 }}
                           className="flex flex-col h-full relative z-10"
                         >
-                          <div className="p-8 sm:p-10 border-b border-zinc-900 flex items-center justify-between bg-black/50 backdrop-blur-xl">
+                          <div className="p-8 sm:p-10 border-b border-zinc-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-30">
                             <div className="flex items-center gap-6">
                               <div className="p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
                                 <Terminal className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.blueprint}</h2>
-                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.masterImplementation}</p>
+                                <h2 className="text-3xl font-semibold text-black uppercase tracking-tighter italic leading-none mb-3">{t.main.blueprint}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">{t.main.masterImplementation}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.detailedPrompt || '', 'detailed_prompt.md')}
-                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-50 border-2 border-zinc-100 py-3 px-6 hover:text-purple-600 hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
                             </button>
                           </div>
-                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar">
+                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar bg-white">
                             <ReactMarkdown>{currentProject.detailedPrompt || ''}</ReactMarkdown>
                           </div>
                         </motion.div>
@@ -1378,25 +1379,25 @@ function MainApp() {
                           exit={{ opacity: 0 }}
                           className="flex flex-col h-full relative z-10"
                         >
-                          <div className="p-8 sm:p-10 border-b border-zinc-900 flex items-center justify-between bg-black/50 backdrop-blur-xl">
+                          <div className="p-8 sm:p-10 border-b border-zinc-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-30">
                             <div className="flex items-center gap-6">
                               <div className="p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
                                 <Settings2 className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.strategy}</h2>
-                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.optimizationScaling}</p>
+                                <h2 className="text-3xl font-semibold text-black uppercase tracking-tighter italic leading-none mb-3">{t.main.strategy}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">{t.main.optimizationScaling}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.systemOptimization || '', 'system_optimization.md')}
-                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-50 border-2 border-zinc-100 py-3 px-6 hover:text-purple-600 hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
                             </button>
                           </div>
-                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar">
+                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar bg-white">
                             <ReactMarkdown>{currentProject.systemOptimization || ''}</ReactMarkdown>
                           </div>
                         </motion.div>
@@ -1408,29 +1409,29 @@ function MainApp() {
                           exit={{ opacity: 0 }}
                           className="flex flex-col h-full relative z-10"
                         >
-                          <div className="p-8 sm:p-10 border-b border-zinc-900 flex items-center justify-between bg-black/50 backdrop-blur-xl">
+                          <div className="p-8 sm:p-10 border-b border-zinc-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-30">
                             <div className="flex items-center gap-6">
                               <div className="p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
                                 <Code2 className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.roadmap}</h2>
-                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.skillChainLogic}</p>
+                                <h2 className="text-3xl font-semibold text-black uppercase tracking-tighter italic leading-none mb-3">{t.main.roadmap}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">{t.main.skillChainLogic}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.skillChainOptimization || '', 'skill_chain_logic.md')}
-                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-50 border-2 border-zinc-100 py-3 px-6 hover:text-purple-600 hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
                             </button>
                           </div>
-                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar">
+                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar bg-white">
                             <ReactMarkdown>{currentProject.skillChainOptimization || ''}</ReactMarkdown>
                           </div>
                         </motion.div>
-                      ) : (
+                      ) : activeResultView === 'masterSkill' ? (
                         <motion.div 
                           key="master-skill-view"
                           initial={{ opacity: 0 }}
@@ -1438,26 +1439,82 @@ function MainApp() {
                           exit={{ opacity: 0 }}
                           className="flex flex-col h-full relative z-10"
                         >
-                          <div className="p-8 sm:p-10 border-b border-zinc-900 flex items-center justify-between bg-black/50 backdrop-blur-xl">
+                          <div className="p-8 sm:p-10 border-b border-zinc-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-30">
                             <div className="flex items-center gap-6">
                               <div className="p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
                                 <Wand2 className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.orchestrator}</h2>
-                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.ultimateSystemLogic}</p>
+                                <h2 className="text-3xl font-semibold text-black uppercase tracking-tighter italic leading-none mb-3">{t.main.orchestrator}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">{t.main.ultimateSystemLogic}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.masterSkill || '', 'master_skill.md')}
-                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-50 border-2 border-zinc-100 py-3 px-6 hover:text-purple-600 hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
                             </button>
                           </div>
-                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar">
+                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar bg-white">
                             <ReactMarkdown>{currentProject.masterSkill || ''}</ReactMarkdown>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.div 
+                          key="full-view"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex flex-col h-full relative z-10"
+                        >
+                          <div className="p-8 sm:p-10 border-b border-zinc-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-30">
+                            <div className="flex items-center gap-6">
+                              <div className="p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+                                <MonitorPlay className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <h2 className="text-3xl font-semibold text-black uppercase tracking-tighter italic leading-none mb-3">{t.main.fullProjectView}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">{t.main.allComponents}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-10 sm:p-12 overflow-y-auto flex-1 markdown-body custom-scrollbar bg-white space-y-20">
+                            <section>
+                              <h1>{currentProject.title}</h1>
+                              <p className="italic text-zinc-500">{currentProject.prompt}</p>
+                            </section>
+
+                            <section>
+                              <h2>{t.main.blueprint}</h2>
+                              <ReactMarkdown>{currentProject.detailedPrompt || ''}</ReactMarkdown>
+                            </section>
+
+                            <section>
+                              <h2>{t.main.phases}</h2>
+                              {currentProject.skills.map((skill, idx) => (
+                                <div key={skill.id} className="mt-12 pt-12 border-t border-zinc-100">
+                                  <h3>Phase {idx + 1}: {skill.title}</h3>
+                                  <ReactMarkdown>{skill.content}</ReactMarkdown>
+                                </div>
+                              ))}
+                            </section>
+
+                            <section>
+                              <h2>{t.main.strategy}</h2>
+                              <ReactMarkdown>{currentProject.systemOptimization || ''}</ReactMarkdown>
+                            </section>
+
+                            <section>
+                              <h2>{t.main.roadmap}</h2>
+                              <ReactMarkdown>{currentProject.skillChainOptimization || ''}</ReactMarkdown>
+                            </section>
+
+                            <section>
+                              <h2>{t.main.orchestrator}</h2>
+                              <ReactMarkdown>{currentProject.masterSkill || ''}</ReactMarkdown>
+                            </section>
                           </div>
                         </motion.div>
                       )}

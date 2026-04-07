@@ -23,39 +23,43 @@ body {
 
 /* Premium Markdown Styling */
 .markdown-body {
-  @apply text-zinc-700 leading-relaxed font-sans;
+  @apply text-zinc-900 leading-relaxed font-sans;
 }
 
 .markdown-body h1 {
-  @apply text-3xl font-bold text-zinc-900 mb-6 mt-10 first:mt-0 font-display tracking-tight;
+  @apply text-4xl font-bold text-black mb-8 mt-12 first:mt-0 font-display tracking-tight border-b-2 border-zinc-100 pb-4;
 }
 
 .markdown-body h2 {
-  @apply text-2xl font-semibold text-zinc-900 mb-4 mt-8 font-display tracking-tight border-b border-zinc-100 pb-2;
+  @apply text-3xl font-semibold text-black mb-6 mt-10 font-display tracking-tight border-b border-zinc-100 pb-2;
 }
 
 .markdown-body h3 {
-  @apply text-xl font-medium text-zinc-900 mb-3 mt-6 font-display;
+  @apply text-2xl font-medium text-black mb-4 mt-8 font-display;
 }
 
 .markdown-body p {
-  @apply mb-5 text-lg;
+  @apply mb-6 text-xl;
 }
 
 .markdown-body ul, .markdown-body ol {
-  @apply mb-5 ml-6 list-disc space-y-2;
+  @apply mb-6 ml-8 list-disc space-y-3;
 }
 
 .markdown-body li {
-  @apply text-lg;
+  @apply text-xl;
 }
 
 .markdown-body code {
-  @apply bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded-md text-sm font-mono font-medium;
+  @apply bg-zinc-100 text-purple-700 px-2 py-1 rounded-md text-base font-mono font-medium;
 }
 
 .markdown-body pre {
-  @apply bg-zinc-950 text-zinc-100 p-6 rounded-2xl mb-6 overflow-x-auto font-mono text-sm shadow-xl border border-white/5;
+  @apply bg-zinc-900 text-zinc-100 p-8 rounded-xl mb-8 overflow-x-auto font-mono text-lg shadow-2xl border border-white/5;
+}
+
+.markdown-body pre code {
+  @apply bg-transparent text-inherit p-0 text-lg;
 }
 
 .markdown-body blockquote {
