@@ -20,15 +20,35 @@ function getAI() {
 }
 
 export async function validateApiKey(apiKey: string): Promise<boolean> {
+  if (!apiKey || !apiKey.trim()) return false;
+  
   try {
     const ai = new GoogleGenAI({ apiKey });
+    // Use a very simple prompt and just check if we get a response
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "Respond with 'ok' if you can read this.",
+      contents: "test",
     });
-    return response.text?.toLowerCase().includes('ok') ?? false;
+    
+    const isValid = !!response.text;
+    console.log("API Key validation result:", isValid);
+    return isValid;
   } catch (error) {
-    console.error("API Key validation failed:", error);
+    console.error("API Key validation failed with error:", error);
+    // If it's a model not found error, try another common model
+    if (error instanceof Error && (error.message.includes('not found') || error.message.includes('404'))) {
+      try {
+        const ai = new GoogleGenAI({ apiKey });
+        const response = await ai.models.generateContent({
+          model: "gemini-2.0-flash-exp", // Fallback to another common model
+          contents: "test",
+        });
+        return !!response.text;
+      } catch (innerError) {
+        console.error("API Key validation fallback failed:", innerError);
+        return false;
+      }
+    }
     return false;
   }
 }

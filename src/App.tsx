@@ -11,7 +11,7 @@ import { saveAs } from 'file-saver';
 import ReactMarkdown from 'react-markdown';
 import { 
   collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, 
-  deleteDoc, doc, getDocs, writeBatch 
+  deleteDoc, doc, getDocs, writeBatch, setDoc 
 } from 'firebase/firestore';
 import { db, auth, signInWithGoogle, logOut, handleFirestoreError, OperationType } from './firebase';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -518,6 +518,26 @@ function MainApp() {
   useEffect(() => {
     if (!isAuthReady || !user) return;
 
+    // Fetch user's API key from Firestore if not in localStorage
+    const fetchUserKey = async () => {
+      if (!localStorage.getItem('GEMINI_API_KEY')) {
+        try {
+          const userDoc = await getDocs(query(collection(db, 'users'), where('userId', '==', user.uid)));
+          if (!userDoc.empty) {
+            const userData = userDoc.docs[0].data();
+            if (userData.apiKey) {
+              localStorage.setItem('GEMINI_API_KEY', userData.apiKey);
+              setManualApiKey(userData.apiKey);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch API key from Firestore:", err);
+        }
+      }
+    };
+
+    fetchUserKey();
+
     const q = query(
       collection(db, 'projects'),
       where('userId', '==', user.uid)
@@ -543,6 +563,16 @@ function MainApp() {
 
     return () => unsubscribe();
   }, [isAuthReady, user]);
+
+  const handleLogOut = async () => {
+    try {
+      localStorage.removeItem('GEMINI_API_KEY');
+      setManualApiKey('');
+      await logOut();
+    } catch (error) {
+      console.error("Error logging out", error);
+    }
+  };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -653,6 +683,7 @@ function MainApp() {
       await addDoc(collection(db, 'projects'), projectData);
       setSaveSuccess(true);
       setIsSaveModalOpen(false);
+      alert(lang === 'en' ? "Project archived successfully!" : "הפרויקט נשמר בארכיון בהצלחה!");
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'projects');
@@ -760,6 +791,13 @@ function MainApp() {
     e.preventDefault();
     if (!manualApiKey.trim()) {
       localStorage.removeItem('GEMINI_API_KEY');
+      if (user) {
+        try {
+          await deleteDoc(doc(db, 'users', user.uid));
+        } catch (err) {
+          console.error("Failed to remove key from Firestore:", err);
+        }
+      }
       setKeyValidationStatus('idle');
       setIsSettingsOpen(false);
       return;
@@ -773,6 +811,21 @@ function MainApp() {
     setIsValidatingKey(false);
     if (isValid) {
       localStorage.setItem('GEMINI_API_KEY', manualApiKey);
+      
+      // Save to Firestore for persistence across devices
+      if (user) {
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            userId: user.uid,
+            apiKey: manualApiKey,
+            updatedAt: serverTimestamp()
+          });
+        } catch (err) {
+          console.error("Failed to save key to Firestore:", err);
+          // Don't fail the whole process if Firestore save fails, as localStorage worked
+        }
+      }
+      
       setKeyValidationStatus('success');
       setTimeout(() => {
         setIsSettingsOpen(false);
@@ -780,6 +833,7 @@ function MainApp() {
       }, 1500);
     } else {
       setKeyValidationStatus('error');
+      alert("ולידציה נכשלה: מפתח ה-API שהוזן אינו תקין או שאין לו גישה למודל הנדרש.");
     }
   };
 
@@ -922,7 +976,7 @@ function MainApp() {
               </button>
 
               <button
-                onClick={logOut}
+                onClick={handleLogOut}
                 className="flex items-center gap-3 text-zinc-500 hover:text-red-500 transition-all group"
                 title={t.header.signOut}
               >
@@ -955,7 +1009,7 @@ function MainApp() {
                 </button>
                 <button
                   onClick={() => {
-                    logOut();
+                    handleLogOut();
                     setIsMobileMenuOpen(false);
                   }}
                   className="w-full flex items-center gap-4 p-4 bg-zinc-900 border-2 border-zinc-800 text-zinc-400 hover:text-red-500 hover:border-red-600/30 transition-all"
