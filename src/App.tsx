@@ -4,7 +4,7 @@ import {
   Loader2, Sparkles, Download, Save, LogOut, Code2, Layers, 
   Terminal, Database, LayoutTemplate, Server, Smartphone, MonitorPlay,
   CheckCircle2, AlertCircle, FileArchive, FileDown, Settings2, Wand2, RotateCcw,
-  Trash2, Search, Key, X, Menu
+  Trash2, Search, Key, X, Menu, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -17,8 +17,10 @@ import { db, auth, signInWithGoogle, logOut, handleFirestoreError, OperationType
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { generateSkills, refineSkill, validateApiKey } from './services/geminiService';
 import { Skill, Project } from './types';
+import { translations, Language } from './translations';
 
-function LandingPage({ onEnter }: { onEnter: () => void }) {
+function LandingPage({ onEnter, lang }: { onEnter: () => void, lang: Language }) {
+  const t = translations[lang].landing;
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -32,35 +34,64 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
     visible: { opacity: 1, y: 0 }
   };
 
+  const [selectedFeature, setSelectedFeature] = useState<any>(null);
+
+  const featureDetails: Record<string, { title: string, content: string }> = {
+    [t.architecture]: {
+      title: t.architecture,
+      content: lang === 'en' 
+        ? "Elite system design specifications including microservices, distributed systems, and cloud-native patterns. We provide detailed diagrams and technical requirements for scalable infrastructure."
+        : "מפרטי עיצוב מערכת עילית הכוללים מיקרו-שירותים, מערכות מבוזרות ודפוסי ענן. אנו מספקים דיאגרמות מפורטות ודרישות טכניות לתשתית ניתנת להרחבה."
+    },
+    [t.uiDesignCard]: {
+      title: t.uiDesignCard,
+      content: lang === 'en'
+        ? "Advanced design systems with intentional motion, typography, and responsive layouts. Our blueprints define a consistent visual language that elevates the user experience."
+        : "מערכות עיצוב מתקדמות עם תנועה מכוונת, טיפוגרפיה ופריסות רספונסיביות. תוכניות העבודה שלנו מגדירות שפה ויזואלית עקבית שמעלה את חווית המשתמש."
+    },
+    [t.fullStack]: {
+      title: t.fullStack,
+      content: lang === 'en'
+        ? "Production-ready blueprints with type-safe API contracts, database schemas, and frontend patterns. We bridge the gap between design and implementation with precise technical specs."
+        : "תוכניות עבודה מוכנות לייצור עם חוזי API בטוחים, סכימות מסדי נתונים ודפוסי פרונטנד. אנו מגשרים על הפער בין עיצוב ליישום עם מפרטים טכניים מדויקים."
+    },
+    [t.optimization]: {
+      title: t.optimization,
+      content: lang === 'en'
+        ? "High-performance strategies for scaling, security hardening, and infrastructure optimization. We ensure your system is built for speed, resilience, and long-term maintainability."
+        : "אסטרטגיות ביצועים גבוהים לגדילה, הקשחת אבטחה ואופטימיזציה של תשתיות. אנו מבטיחים שהמערכת שלך בנויה למהירות, עמידות ותחזוקה לטווח ארוך."
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-purple-500 selection:text-white overflow-x-hidden font-sans w-full max-w-full">
+    <div className="min-h-screen bg-black text-white selection:bg-purple-500 selection:text-white overflow-x-hidden font-sans w-full max-w-full" dir={translations[lang].dir}>
       {/* Navigation */}
       <nav className="relative z-50 px-4 sm:px-8 py-6 sm:py-10 max-w-[1400px] mx-auto flex items-center justify-between">
         <motion.div 
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: lang === 'en' ? -20 : 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-4"
+          className="flex items-center gap-4 flex-shrink-0"
         >
-          <div className="text-3xl font-black tracking-tighter flex items-center gap-1">
-            ARCHITECT<span className="text-purple-500">.</span>
+          <div className="text-3xl font-bold tracking-tighter flex items-center gap-1">
+            {t.architect}<span className="text-purple-500">.</span>
           </div>
         </motion.div>
         
         <motion.div 
-          initial={{ opacity: 0, x: 20 }}
+          initial={{ opacity: 0, x: lang === 'en' ? 20 : -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center gap-10"
         >
-          <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
-            <a href="#" className="hover:text-white transition-colors">Home</a>
-            <a href="#" className="hover:text-white transition-colors">Process</a>
-            <a href="#" className="hover:text-white transition-colors">Pricing</a>
+          <div className="hidden md:flex items-center gap-8 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            <a href="#" className="hover:text-white transition-colors">{t.home}</a>
+            <a href="#" className="hover:text-white transition-colors">{t.process}</a>
+            <a href="#" className="hover:text-white transition-colors">{t.pricing}</a>
           </div>
           <button 
             onClick={onEnter}
-            className="px-8 py-3 bg-purple-600 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all active:scale-95"
+            className="px-8 py-3 bg-purple-600 text-white font-bold text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all active:scale-95"
           >
-            Launch App
+            {t.launchApp}
           </button>
         </motion.div>
       </nav>
@@ -72,10 +103,10 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.1 }}
-            className="absolute -left-10 sm:-left-20 top-0 text-[8rem] sm:text-[12rem] font-black leading-none select-none pointer-events-none hidden sm:block"
+            className={`absolute ${lang === 'en' ? '-left-10 sm:-left-20' : '-right-10 sm:-right-20'} top-0 text-[8rem] sm:text-[12rem] font-semibold leading-none select-none pointer-events-none hidden sm:block`}
             style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
           >
-            ELITE
+            {t.elite}
           </motion.div>
 
           <motion.div
@@ -86,29 +117,38 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
           >
             <motion.div variants={itemVariants} className="flex items-center gap-4">
               <div className="h-[2px] w-12 bg-purple-500"></div>
-              <span className="text-xs font-bold uppercase tracking-[0.4em] text-purple-500">Edition 2026</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.4em] text-purple-500">{t.edition}</span>
             </motion.div>
             
-            <motion.h1 variants={itemVariants} className="text-7xl md:text-[10rem] font-black leading-[0.85] tracking-tighter uppercase italic">
-              UI<span className="text-purple-500">.</span><br />
-              <span className="text-zinc-800">DESIGN</span>
+            <motion.h1 variants={itemVariants} className="text-7xl md:text-[10rem] font-semibold leading-[0.85] tracking-tighter uppercase italic">
+              {lang === 'en' ? (
+                <>
+                  UI<span className="text-purple-500">.</span><br />
+                  <span className="text-zinc-800">DESIGN</span>
+                </>
+              ) : (
+                <>
+                  עיצוב<span className="text-purple-500">.</span><br />
+                  <span className="text-zinc-800">UI</span>
+                </>
+              )}
             </motion.h1>
             
             <motion.div variants={itemVariants} className="max-w-md space-y-8">
               <p className="text-lg text-zinc-400 leading-relaxed font-medium">
-                Transform simple prompts into professional, production-ready technical specifications and full-stack blueprints.
+                {t.description}
               </p>
               
               <div className="flex items-center gap-6">
                 <button 
                   onClick={onEnter}
-                  className="px-10 py-5 bg-purple-600 text-white font-black text-sm uppercase tracking-[0.2em] hover:bg-purple-500 transition-all shadow-[0_0_40px_rgba(168,85,247,0.3)]"
+                  className="px-10 py-5 bg-purple-600 text-white font-bold text-sm uppercase tracking-[0.2em] hover:bg-purple-500 transition-all shadow-[0_0_40px_rgba(168,85,247,0.3)]"
                 >
-                  Start Now
+                  {t.startNow}
                 </button>
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Guide for</span>
-                  <span className="text-sm font-bold text-white">Beginners & Pros</span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">{t.guideFor}</span>
+                  <span className="text-sm font-semibold text-white">{t.beginnersPros}</span>
                 </div>
               </div>
             </motion.div>
@@ -137,8 +177,8 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
                 
                 {/* Floating Stats */}
                 <div className="absolute bottom-10 left-0 right-0 flex justify-center gap-4">
-                  <div className="px-3 py-1 bg-black text-[10px] font-black uppercase tracking-tighter">+150 Students</div>
-                  <div className="px-3 py-1 bg-black text-[10px] font-black uppercase tracking-tighter">+50 Courses</div>
+                  <div className="px-3 py-1 bg-black text-[10px] font-bold uppercase tracking-tighter">+150 {t.students}</div>
+                  <div className="px-3 py-1 bg-black text-[10px] font-bold uppercase tracking-tighter">+50 {t.courses}</div>
                 </div>
               </div>
             </div>
@@ -150,36 +190,37 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
       <section className="py-40 px-8 border-t border-zinc-900">
         <div className="max-w-[1400px] mx-auto">
           <div className="flex flex-col md:flex-row items-end justify-between mb-24 gap-8">
-            <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none">
-              Accept New<br />
-              <span className="text-purple-500">Challenges</span>
+            <h2 className="text-5xl md:text-8xl font-bold uppercase tracking-tighter leading-none">
+              {t.acceptNew}<br />
+              <span className="text-purple-500">{t.challenges}</span>
             </h2>
-            <div className="text-xs font-bold uppercase tracking-[0.4em] text-zinc-500 pb-4">
-              Explore / 2026
+            <div className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500 pb-4">
+              {t.explore} / 2026
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-zinc-900 border border-zinc-900">
             {[
-              { title: "Architecture", desc: "Elite system design specs", icon: <Layers className="w-6 h-6" /> },
-              { title: "UI Design", desc: "Advanced design systems", icon: <LayoutTemplate className="w-6 h-6" /> },
-              { title: "Full Stack", desc: "Production blueprints", icon: <Terminal className="w-6 h-6" /> },
-              { title: "Optimization", desc: "High-performance strategies", icon: <Settings2 className="w-6 h-6" /> }
+              { title: t.architecture, desc: t.architectureDesc, icon: <Layers className="w-6 h-6" /> },
+              { title: t.uiDesignCard, desc: t.uiDesignDesc, icon: <LayoutTemplate className="w-6 h-6" /> },
+              { title: t.fullStack, desc: t.fullStackDesc, icon: <Terminal className="w-6 h-6" /> },
+              { title: t.optimization, desc: t.optimizationDesc, icon: <Settings2 className="w-6 h-6" /> }
             ].map((feature, i) => (
               <motion.div 
                 key={i}
                 whileHover={{ backgroundColor: "#18181b" }}
-                className="bg-black p-12 space-y-8 transition-colors group cursor-default"
+                onClick={() => setSelectedFeature(featureDetails[feature.title])}
+                className="bg-black p-12 space-y-8 transition-colors group cursor-pointer"
               >
                 <div className="text-purple-500 group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight mb-2">{feature.title}</h3>
+                  <h3 className="text-xl font-semibold uppercase tracking-tight mb-2">{feature.title}</h3>
                   <p className="text-zinc-500 text-sm font-medium">{feature.desc}</p>
                 </div>
-                <div className="pt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-700 group-hover:text-purple-500 transition-colors">
-                  Learn More <Wand2 className="w-3 h-3" />
+                <div className="pt-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-700 group-hover:text-purple-500 transition-colors">
+                  {t.learnMore} <Wand2 className="w-3 h-3" />
                 </div>
               </motion.div>
             ))}
@@ -187,30 +228,80 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
+      {/* Feature Details Modal */}
+      <AnimatePresence>
+        {selectedFeature && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedFeature(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-zinc-900 border-2 border-zinc-800 p-8 sm:p-12 max-w-lg w-full shadow-2xl"
+            >
+              <button 
+                onClick={() => setSelectedFeature(null)}
+                className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-[2px] w-8 bg-purple-500"></div>
+                  <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-purple-500">{t.explore}</h3>
+                </div>
+                
+                <h2 className="text-4xl font-bold uppercase tracking-tighter italic text-white">
+                  {selectedFeature.title}<span className="text-purple-500">.</span>
+                </h2>
+                
+                <p className="text-zinc-400 text-lg leading-relaxed font-medium">
+                  {selectedFeature.content}
+                </p>
+                
+                <button 
+                  onClick={() => setSelectedFeature(null)}
+                  className="w-full py-4 bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all"
+                >
+                  {lang === 'en' ? 'CLOSE' : 'סגור'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* CTA Section */}
       <section className="py-40 px-8 bg-purple-600">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
           <div className="space-y-6">
-            <h2 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none text-black">
-              Find Your<br />Course.
+            <h2 className="text-6xl md:text-8xl font-bold uppercase tracking-tighter leading-none text-black">
+              {t.findYour}<br />{t.course}
             </h2>
-            <p className="text-black/60 font-bold max-w-md">
-              Join the elite circle of architects and designers building the next generation of software.
+            <p className="text-black/60 font-semibold max-w-md">
+              {t.ctaDesc}
             </p>
           </div>
           
           <div className="flex flex-col gap-4 w-full max-w-md">
             <div className="border-b-2 border-black pb-2">
-              <input type="text" placeholder="NAME" className="bg-transparent w-full outline-none placeholder:text-black/40 font-black text-black" />
+              <input type="text" placeholder={t.name} className="bg-transparent w-full outline-none placeholder:text-black/40 font-bold text-black" />
             </div>
             <div className="border-b-2 border-black pb-2">
-              <input type="email" placeholder="EMAIL" className="bg-transparent w-full outline-none placeholder:text-black/40 font-black text-black" />
+              <input type="email" placeholder={t.email} className="bg-transparent w-full outline-none placeholder:text-black/40 font-bold text-black" />
             </div>
             <button 
               onClick={onEnter}
-              className="mt-6 py-5 bg-black text-white font-black uppercase tracking-[0.2em] hover:bg-zinc-900 transition-all"
+              className="mt-6 py-5 bg-black text-white font-bold uppercase tracking-[0.2em] hover:bg-zinc-900 transition-all"
             >
-              Subscribe
+              {t.subscribe}
             </button>
           </div>
         </div>
@@ -220,36 +311,36 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
       <footer className="py-20 px-8 border-t border-zinc-900">
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-6">
-            <div className="text-2xl font-black tracking-tighter uppercase">
-              ARCHITECT<span className="text-purple-500">.</span>
+            <div className="text-2xl font-bold tracking-tighter uppercase">
+              {t.architect}<span className="text-purple-500">.</span>
             </div>
             <p className="text-zinc-500 text-sm font-medium">
-              The ultimate technical architecture engine for elite developers.
+              {t.footerDesc}
             </p>
           </div>
           
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-white mb-6">About</h4>
-            <ul className="space-y-4 text-zinc-500 text-xs font-bold uppercase tracking-widest">
-              <li><a href="#" className="hover:text-purple-500 transition-colors">Our Story</a></li>
-              <li><a href="#" className="hover:text-purple-500 transition-colors">Team</a></li>
-              <li><a href="#" className="hover:text-purple-500 transition-colors">Careers</a></li>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-white mb-6">{t.about}</h4>
+            <ul className="space-y-4 text-zinc-500 text-xs font-semibold uppercase tracking-widest">
+              <li><a href="#" className="hover:text-purple-500 transition-colors">{t.ourStory}</a></li>
+              <li><a href="#" className="hover:text-purple-500 transition-colors">{t.team}</a></li>
+              <li><a href="#" className="hover:text-purple-500 transition-colors">{t.careers}</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-white mb-6">What we do</h4>
-            <ul className="space-y-4 text-zinc-500 text-xs font-bold uppercase tracking-widest">
-              <li><a href="#" className="hover:text-purple-500 transition-colors">Architecture</a></li>
-              <li><a href="#" className="hover:text-purple-500 transition-colors">UI Design</a></li>
-              <li><a href="#" className="hover:text-purple-500 transition-colors">Optimization</a></li>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-white mb-6">{t.whatWeDo}</h4>
+            <ul className="space-y-4 text-zinc-500 text-xs font-semibold uppercase tracking-widest">
+              <li><a href="#" className="hover:text-purple-500 transition-colors">{t.architecture}</a></li>
+              <li><a href="#" className="hover:text-purple-500 transition-colors">{t.uiDesignCard}</a></li>
+              <li><a href="#" className="hover:text-purple-500 transition-colors">{t.optimization}</a></li>
             </ul>
           </div>
 
           <div className="space-y-6">
-            <h4 className="text-xs font-black uppercase tracking-widest text-white mb-6">Sign up to receive our newsletter</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-white mb-6">{t.newsletter}</h4>
             <div className="flex border-b border-zinc-800 pb-2">
-              <input type="email" placeholder="EMAIL" className="bg-transparent w-full outline-none text-xs font-bold uppercase tracking-widest" />
+              <input type="email" placeholder={t.email} className="bg-transparent w-full outline-none text-xs font-semibold uppercase tracking-widest" />
               <button className="text-purple-500"><Wand2 className="w-4 h-4" /></button>
             </div>
             <div className="flex gap-6 pt-4">
@@ -264,15 +355,19 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
   );
 }
 
-function LoadingState() {
+function LoadingState({ lang }: { lang: Language }) {
+  const t = translations[lang].loading;
   const [step, setStep] = React.useState(0);
-  const steps = [
-    { title: "Analyzing Vision", description: "Deconstructing your prompt into core architectural requirements.", icon: <Search className="w-8 h-8" /> },
-    { title: "Architecting System", description: "Designing a high-performance, scalable distributed system architecture.", icon: <Layers className="w-8 h-8" /> },
-    { title: "Crafting UI/UX", description: "Defining an elite design system with intentional motion and typography.", icon: <LayoutTemplate className="w-8 h-8" /> },
-    { title: "Engineering Specs", description: "Generating type-safe API contracts and advanced frontend patterns.", icon: <Code2 className="w-8 h-8" /> },
-    { title: "Optimizing Infrastructure", description: "Hardening security and defining cloud-native deployment strategies.", icon: <Server className="w-8 h-8" /> },
-    { title: "Finalizing Roadmap", description: "Synthesizing the master orchestrator and execution sequence.", icon: <Sparkles className="w-8 h-8" /> },
+  const currentT = translations[lang].loading;
+  const steps = currentT.steps;
+
+  const icons = [
+    <Search className="w-8 h-8" />,
+    <Layers className="w-8 h-8" />,
+    <LayoutTemplate className="w-8 h-8" />,
+    <Code2 className="w-8 h-8" />,
+    <Server className="w-8 h-8" />,
+    <Sparkles className="w-8 h-8" />,
   ];
 
   React.useEffect(() => {
@@ -299,8 +394,8 @@ function LoadingState() {
         />
       </div>
 
-      <div className="absolute -right-20 top-1/2 -translate-y-1/2 text-[15rem] font-black opacity-[0.03] select-none pointer-events-none italic uppercase">
-        PROCESS
+      <div className="absolute -right-20 top-1/2 -translate-y-1/2 text-[15rem] font-bold opacity-[0.03] select-none pointer-events-none italic uppercase">
+        {lang === 'he' ? 'תהליך' : 'PROCESS'}
       </div>
       
       <div className="relative mb-16">
@@ -312,7 +407,7 @@ function LoadingState() {
             exit={{ opacity: 0, scale: 1.5, rotate: 45 }}
             className="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center text-white shadow-[0_0_50px_rgba(168,85,247,0.4)] relative z-10"
           >
-            {steps[step].icon}
+            {icons[step]}
           </motion.div>
         </AnimatePresence>
         <div className="absolute -inset-8 border-2 border-purple-600/20 rounded-full animate-[ping_3s_linear_infinite]"></div>
@@ -327,7 +422,7 @@ function LoadingState() {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-4"
           >
-            <h3 className="text-4xl font-black text-white uppercase tracking-tighter italic">
+            <h3 className="text-4xl font-bold text-white uppercase tracking-tighter italic">
               {steps[step].title}<span className="text-purple-500">.</span>
             </h3>
             <p className="text-zinc-500 text-lg font-medium leading-relaxed">
@@ -349,7 +444,7 @@ function LoadingState() {
           ))}
         </div>
         
-        <div className="flex items-center gap-3 text-xs font-black text-purple-500 uppercase tracking-[0.4em]">
+        <div className="flex items-center gap-3 text-xs font-bold text-purple-500 uppercase tracking-[0.4em]">
           <Loader2 className="w-4 h-4 animate-spin" />
           Elite Engine Running
         </div>
@@ -398,6 +493,16 @@ function MainApp() {
   // API Key State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('APP_LANG');
+    return (saved as Language) || 'en';
+  });
+
+  const t = translations[lang];
+
+  useEffect(() => {
+    localStorage.setItem('APP_LANG', lang);
+  }, [lang]);
   const [manualApiKey, setManualApiKey] = useState(localStorage.getItem('GEMINI_API_KEY') || '');
   const [isValidatingKey, setIsValidatingKey] = useState(false);
   const [keyValidationStatus, setKeyValidationStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -654,20 +759,35 @@ function MainApp() {
   };
 
   if (showLanding) {
-    return <LandingPage onEnter={() => setShowLanding(false)} />;
+    return <LandingPage onEnter={() => setShowLanding(false)} lang={lang} />;
   }
 
   if (!isAuthReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black p-8 font-sans">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black p-8 font-sans" dir={t.dir}>
+        <div className="absolute top-8 right-8 flex gap-2">
+          <button 
+            onClick={() => setLang('en')}
+            className={`px-3 py-1 text-[10px] font-bold border-2 transition-all ${lang === 'en' ? 'bg-purple-600 border-purple-600 text-white' : 'border-zinc-800 text-zinc-500 hover:text-white'}`}
+          >
+            EN
+          </button>
+          <button 
+            onClick={() => setLang('he')}
+            className={`px-3 py-1 text-[10px] font-bold border-2 transition-all ${lang === 'he' ? 'bg-purple-600 border-purple-600 text-white' : 'border-zinc-800 text-zinc-500 hover:text-white'}`}
+          >
+            HE
+          </button>
+        </div>
+
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -677,18 +797,18 @@ function MainApp() {
             <div className="w-24 h-24 bg-purple-600 rounded-full flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(168,85,247,0.4)]">
               <Sparkles className="w-12 h-12 text-white" />
             </div>
-            <h1 className="text-5xl font-black uppercase tracking-tighter italic">
-              ELITE<br />
-              <span className="text-purple-500">ARCHITECT.</span>
+            <h1 className="text-5xl font-bold uppercase tracking-tighter">
+              {t.login.elite}<br />
+              <span className="text-purple-500">{t.login.architect}</span>
             </h1>
             <p className="text-zinc-500 font-medium text-lg">
-              Join the elite circle of architects building the next generation of software.
+              {t.login.joinCircle}
             </p>
           </div>
 
           <button
             onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center gap-4 bg-purple-600 text-white py-5 px-8 font-black uppercase tracking-[0.2em] text-sm hover:bg-purple-500 transition-all shadow-[0_0_30px_rgba(168,85,247,0.2)] active:scale-95"
+            className="w-full flex items-center justify-center gap-4 bg-purple-600 text-white py-5 px-8 font-bold uppercase tracking-[0.2em] text-sm hover:bg-purple-500 transition-all shadow-[0_0_30px_rgba(168,85,247,0.2)] active:scale-95"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -696,11 +816,11 @@ function MainApp() {
               <path fill="currentColor" opacity="0.6" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="currentColor" opacity="0.4" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            Continue with Google
+            {t.login.authenticate}
           </button>
           
-          <div className="pt-8 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700">
-            Secure Access / 2026 Edition
+          <div className="pt-8 text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-700">
+            {t.login.secureAccess}
           </div>
         </motion.div>
       </div>
@@ -708,7 +828,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-purple-500 selection:text-white overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-purple-500 selection:text-white overflow-x-hidden w-full max-w-full" dir={t.dir}>
       {/* Header */}
       <header className="bg-black border-b border-zinc-900 sticky top-0 z-50 w-full">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 sm:h-24 flex items-center justify-between">
@@ -723,28 +843,43 @@ function MainApp() {
               </button>
             </div>
 
-            <div className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic truncate">
-              ARCHITECT<span className="text-purple-500">.</span>
+            <div className="text-xl sm:text-2xl font-bold tracking-tighter uppercase">
+              {t.landing.architect}<span className="text-purple-500">.</span>
             </div>
           </div>
           
           <div className="flex items-center gap-3 sm:gap-8">
+            <div className="hidden md:flex bg-zinc-900 p-1 border border-zinc-800">
+              <button 
+                onClick={() => setLang('en')}
+                className={`px-3 py-1 text-[10px] font-bold transition-all ${lang === 'en' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'}`}
+              >
+                EN
+              </button>
+              <button 
+                onClick={() => setLang('he')}
+                className={`px-3 py-1 text-[10px] font-bold transition-all ${lang === 'he' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'}`}
+              >
+                HE
+              </button>
+            </div>
+
             <div className="flex bg-zinc-900 p-1 border border-zinc-800 scale-90 sm:scale-100">
               <button
                 onClick={() => setActiveTab('generate')}
-                className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
                   activeTab === 'generate' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'
                 }`}
               >
-                Generate
+                {t.header.generate}
               </button>
               <button
                 onClick={() => setActiveTab('saved')}
-                className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
                   activeTab === 'saved' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'
                 }`}
               >
-                Library ({savedProjects.length})
+                {t.header.library} ({savedProjects.length})
               </button>
             </div>
             
@@ -755,19 +890,19 @@ function MainApp() {
               <button
                 onClick={() => setIsSettingsOpen(true)}
                 className="flex items-center gap-3 text-zinc-500 hover:text-purple-500 transition-all group"
-                title="API Settings"
+                title={t.header.apiKey}
               >
                 <Key className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">API Key</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">{t.header.apiKey}</span>
               </button>
 
               <button
                 onClick={logOut}
                 className="flex items-center gap-3 text-zinc-500 hover:text-red-500 transition-all group"
-                title="Sign out"
+                title={t.header.signOut}
               >
                 <LogOut className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">{t.header.signOut}</span>
               </button>
             </div>
           </div>
@@ -791,7 +926,7 @@ function MainApp() {
                   className="w-full flex items-center gap-4 p-4 bg-zinc-900 border-2 border-zinc-800 text-zinc-400 hover:text-white hover:border-purple-600 transition-all"
                 >
                   <Key className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">API Key Configuration</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{t.header.apiKeyConfig}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -801,8 +936,22 @@ function MainApp() {
                   className="w-full flex items-center gap-4 p-4 bg-zinc-900 border-2 border-zinc-800 text-zinc-400 hover:text-red-500 hover:border-red-600/30 transition-all"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Terminate Session</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{t.header.terminateSession}</span>
                 </button>
+                <div className="flex bg-zinc-900 p-1 border border-zinc-800">
+                  <button 
+                    onClick={() => setLang('en')}
+                    className={`flex-1 py-3 text-[10px] font-bold transition-all ${lang === 'en' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'}`}
+                  >
+                    ENGLISH
+                  </button>
+                  <button 
+                    onClick={() => setLang('he')}
+                    className={`flex-1 py-3 text-[10px] font-bold transition-all ${lang === 'he' ? 'bg-purple-600 text-white' : 'text-zinc-500 hover:text-white'}`}
+                  >
+                    עברית
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -815,14 +964,14 @@ function MainApp() {
           <div className="flex flex-col h-full gap-12">
             {/* Prompt Input */}
             <div className="bg-black border-2 border-zinc-900 p-6 sm:p-10 relative overflow-hidden">
-              <div className="absolute -right-10 -top-10 text-[6rem] sm:text-[10rem] font-black opacity-[0.02] select-none pointer-events-none italic uppercase hidden sm:block">
-                INPUT
+              <div className="absolute -right-10 -top-10 text-[6rem] sm:text-[10rem] font-bold opacity-[0.02] select-none pointer-events-none italic uppercase hidden sm:block">
+                {t.main.input}
               </div>
               
               <div className="flex items-center justify-between mb-8 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="h-[2px] w-8 bg-purple-500"></div>
-                  <h2 className="text-xs font-black uppercase tracking-[0.4em] text-purple-500">Project Specification</h2>
+                  <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-purple-500">{t.main.projectSpec}</h2>
                 </div>
                 <button
                   type="button"
@@ -843,12 +992,12 @@ function MainApp() {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     dir={/[\u0590-\u05FF]/.test(prompt) ? 'rtl' : 'ltr'}
-                    placeholder="DESCRIBE YOUR VISION..."
-                    className="w-full h-48 p-8 bg-zinc-900/50 border-2 border-zinc-900 focus:border-purple-600 outline-none resize-none transition-all text-xl font-bold uppercase tracking-tight placeholder:text-zinc-800"
+                    placeholder={t.main.describeVision}
+                    className="w-full h-48 p-8 bg-zinc-900/50 border-2 border-zinc-900 focus:border-purple-600 outline-none resize-none transition-all text-xl font-semibold uppercase tracking-tight placeholder:text-zinc-800"
                     disabled={isGenerating}
                   />
-                  <div className="absolute bottom-4 right-4 text-[10px] font-black text-zinc-700 uppercase tracking-widest">
-                    {prompt.length} CHARS
+                  <div className={`absolute bottom-4 ${lang === 'en' ? 'right-4' : 'left-4'} text-[10px] font-bold text-zinc-700 uppercase tracking-widest`}>
+                    {prompt.length} {t.main.chars}
                   </div>
                 </div>
                 
@@ -862,44 +1011,41 @@ function MainApp() {
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-10 pb-6 border-t border-zinc-900">
                         <div className="space-y-3">
-                          <label className="flex items-center gap-3 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                          <label className="flex items-center gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
                             <MonitorPlay className="w-4 h-4 text-purple-500" />
-                            Target Audience
+                            {t.main.targetAudience}
                           </label>
                           <select
                             value={audience}
                             onChange={(e) => setAudience(e.target.value)}
-                            className="w-full bg-zinc-900 border-2 border-zinc-800 rounded-none px-5 py-4 text-sm font-bold focus:border-purple-600 outline-none transition-all appearance-none uppercase tracking-tight"
+                            className="w-full bg-zinc-900 border-2 border-zinc-800 rounded-none px-5 py-4 text-sm font-semibold focus:border-purple-600 outline-none transition-all appearance-none uppercase tracking-tight"
                             disabled={isGenerating}
                           >
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
-                            <option value="Kids">Kids</option>
-                            <option value="Executives">Executives</option>
+                            {Object.entries(t.audiences).map(([key, value]) => (
+                              <option key={key} value={key}>{value}</option>
+                            ))}
                           </select>
                         </div>
                         <div className="space-y-3">
-                          <label className="flex items-center gap-3 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                          <label className="flex items-center gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
                             <Sparkles className="w-4 h-4 text-purple-500" />
-                            Voice & Tone
+                            {t.main.voiceTone}
                           </label>
                           <select
                             value={tone}
                             onChange={(e) => setTone(e.target.value)}
-                            className="w-full bg-zinc-900 border-2 border-zinc-800 rounded-none px-5 py-4 text-sm font-bold focus:border-purple-600 outline-none transition-all appearance-none uppercase tracking-tight"
+                            className="w-full bg-zinc-900 border-2 border-zinc-800 rounded-none px-5 py-4 text-sm font-semibold focus:border-purple-600 outline-none transition-all appearance-none uppercase tracking-tight"
                             disabled={isGenerating}
                           >
-                            <option value="Professional">Professional</option>
-                            <option value="Casual">Casual</option>
-                            <option value="Humorous">Humorous</option>
-                            <option value="Academic">Academic</option>
+                            {Object.entries(t.tones).map(([key, value]) => (
+                              <option key={key} value={key}>{value}</option>
+                            ))}
                           </select>
                         </div>
                         <div className="space-y-3">
-                          <label className="flex items-center gap-3 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                          <label className="flex items-center gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
                             <Layers className="w-4 h-4 text-purple-500" />
-                            Complexity Level
+                            {t.main.complexity}
                           </label>
                           <div className="flex items-center gap-6 bg-zinc-900 p-4 border-2 border-zinc-800">
                             <input
@@ -911,7 +1057,7 @@ function MainApp() {
                               className="flex-1 h-1 bg-zinc-800 rounded-none appearance-none cursor-pointer accent-purple-600"
                               disabled={isGenerating}
                             />
-                            <span className="text-sm font-black text-purple-500 w-8 text-center">{numSkills}</span>
+                            <span className="text-sm font-semibold text-purple-500 w-8 text-center">{numSkills}</span>
                           </div>
                         </div>
                       </div>
@@ -925,26 +1071,26 @@ function MainApp() {
                       type="button"
                       onClick={handleReset}
                       disabled={isGenerating}
-                      className="flex items-center gap-3 bg-zinc-900 text-zinc-400 px-8 py-4 font-black uppercase tracking-widest text-[10px] hover:text-white hover:bg-zinc-800 transition-all border-2 border-zinc-800"
+                      className="flex items-center gap-3 bg-zinc-900 text-zinc-400 px-8 py-4 font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-zinc-800 transition-all border-2 border-zinc-800"
                     >
                       <RotateCcw className="w-4 h-4" />
-                      Reset System
+                      {t.main.resetSystem}
                     </button>
                   )}
                   <button
                     type="submit"
                     disabled={!prompt.trim() || isGenerating}
-                    className="flex items-center gap-4 bg-purple-600 text-white px-10 py-4 font-black uppercase tracking-[0.2em] text-sm hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_30px_rgba(168,85,247,0.2)] active:scale-95"
+                    className="flex items-center gap-4 bg-purple-600 text-white px-10 py-4 font-bold uppercase tracking-[0.2em] text-sm hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_30px_rgba(168,85,247,0.2)] active:scale-95"
                   >
                     {isGenerating ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Architecting...
+                        {t.main.architecting}
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-5 h-5" />
-                        Execute Generation
+                        {t.main.executeGeneration}
                       </>
                     )}
                   </button>
@@ -955,7 +1101,7 @@ function MainApp() {
             {/* Results Area */}
             <AnimatePresence mode="wait">
               {isGenerating ? (
-                <LoadingState key="loading-state" />
+                <LoadingState key="loading-state" lang={lang} />
               ) : currentProject && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
@@ -966,34 +1112,34 @@ function MainApp() {
                   {/* Sidebar: Skill List */}
                   <div className="w-full lg:w-96 flex flex-col gap-6">
                     <div className="bg-black border-2 border-zinc-900 p-6 flex flex-col h-full relative overflow-hidden">
-                      <div className="absolute -left-10 -top-10 text-8xl font-black opacity-[0.02] select-none pointer-events-none italic uppercase">
-                        NAV
+                      <div className="absolute -left-10 -top-10 text-8xl font-bold opacity-[0.02] select-none pointer-events-none italic uppercase">
+                        {t.main.nav}
                       </div>
                       
                       <div className="mb-8 pb-8 border-b border-zinc-900 relative z-10">
-                        <h3 className="text-xl font-black text-white uppercase tracking-tighter italic mb-6 leading-tight">{currentProject.title}</h3>
+                        <h3 className="text-xl font-bold text-white uppercase tracking-tighter italic mb-6 leading-tight">{currentProject.title}</h3>
                         <div className="flex flex-col gap-3">
                           <button
                             onClick={() => {
                               setCustomTitle(currentProject.title);
                               setIsSaveModalOpen(true);
                             }}
-                            disabled={isSaving || saveSuccess}
-                            className={`flex items-center justify-center gap-3 py-4 px-6 font-black uppercase tracking-widest text-[10px] transition-all ${
+                            disabled={isGenerating || isSaving || saveSuccess}
+                            className={`flex items-center justify-center gap-3 py-4 px-6 font-bold uppercase tracking-widest text-[10px] transition-all ${
                               saveSuccess 
                                 ? 'bg-emerald-600/10 text-emerald-500 border-2 border-emerald-600/30' 
                                 : 'bg-zinc-900 text-zinc-400 border-2 border-zinc-800 hover:text-white hover:border-purple-600'
                             }`}
                           >
                             {saveSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                            {saveSuccess ? 'ARCHIVED' : 'ARCHIVE PROJECT'}
+                            {saveSuccess ? t.main.archived : t.main.archiveProject}
                           </button>
                           <button
                             onClick={() => downloadAllAsZip(currentProject)}
-                            className="flex items-center justify-center gap-3 bg-purple-600 text-white py-4 px-6 font-black uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                            className="flex items-center justify-center gap-3 bg-purple-600 text-white py-4 px-6 font-bold uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)]"
                           >
                             <FileArchive className="w-4 h-4" />
-                            DOWNLOAD ASSET (.ZIP)
+                            {t.main.downloadAsset}
                           </button>
                         </div>
                       </div>
@@ -1001,16 +1147,16 @@ function MainApp() {
                       <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar relative z-10">
                         <div className="mb-8 space-y-2">
                           {[
-                            { id: 'skills', label: 'Architectural Phases', icon: <Layers className="w-4 h-4" /> },
-                            { id: 'detailedPrompt', label: 'Full-Stack Blueprint', icon: <Terminal className="w-4 h-4" /> },
-                            { id: 'systemOptimization', label: 'Performance Strategy', icon: <Settings2 className="w-4 h-4" /> },
-                            { id: 'skillChain', label: 'Execution Roadmap', icon: <Code2 className="w-4 h-4" /> },
-                            { id: 'masterSkill', label: 'Master Orchestrator', icon: <Wand2 className="w-4 h-4" /> }
+                            { id: 'skills', label: t.main.phases, icon: <Layers className="w-4 h-4" /> },
+                            { id: 'detailedPrompt', label: t.main.blueprint, icon: <Terminal className="w-4 h-4" /> },
+                            { id: 'systemOptimization', label: t.main.strategy, icon: <Settings2 className="w-4 h-4" /> },
+                            { id: 'skillChain', label: t.main.roadmap, icon: <Code2 className="w-4 h-4" /> },
+                            { id: 'masterSkill', label: t.main.orchestrator, icon: <Wand2 className="w-4 h-4" /> }
                           ].map((item) => (
                             <button
                               key={item.id}
                               onClick={() => setActiveResultView(item.id as any)}
-                              className={`w-full text-left p-4 font-black uppercase tracking-widest text-[10px] transition-all border-2 ${
+                              className={`w-full text-left p-4 font-bold uppercase tracking-widest text-[10px] transition-all border-2 ${
                                 activeResultView === item.id 
                                   ? 'bg-purple-600 border-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
                                   : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-700'
@@ -1026,15 +1172,15 @@ function MainApp() {
 
                         {activeResultView === 'skills' && (
                           <div className="mb-6 relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <div className={`absolute inset-y-0 ${lang === 'en' ? 'left-0 pl-4' : 'right-0 pr-4'} flex items-center pointer-events-none`}>
                               <Search className="h-4 w-4 text-zinc-600" />
                             </div>
                             <input
                               type="text"
-                              placeholder="FILTER PHASES..."
+                              placeholder={t.main.filterPhases}
                               value={skillSearchQuery}
                               onChange={(e) => setSkillSearchQuery(e.target.value)}
-                              className="w-full bg-zinc-900 border-2 border-zinc-800 px-12 py-3 text-[10px] font-black uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700"
+                              className={`w-full bg-zinc-900 border-2 border-zinc-800 ${lang === 'en' ? 'pl-12 pr-4' : 'pr-12 pl-4'} py-3 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700`}
                             />
                           </div>
                         )}
@@ -1062,8 +1208,8 @@ function MainApp() {
                               {getIconForSkill(skill.title)}
                             </div>
                             <div className="flex-1">
-                              <div className="text-[9px] uppercase tracking-[0.3em] font-black text-purple-500 mb-2">Phase {index + 1}</div>
-                              <div className={`text-xs font-black uppercase tracking-tight leading-tight mb-3 ${
+                              <div className="text-[9px] uppercase tracking-[0.3em] font-bold text-purple-500 mb-2">Phase {index + 1}</div>
+                              <div className={`text-xs font-bold uppercase tracking-tight leading-tight mb-3 ${
                                 selectedSkill?.id === skill.id ? 'text-white' : 'text-zinc-500'
                               }`}>
                                 {skill.title}
@@ -1071,7 +1217,7 @@ function MainApp() {
                               {skill.tags && skill.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                   {skill.tags.map(tag => (
-                                    <span key={tag} className={`text-[8px] px-2 py-1 font-black uppercase tracking-widest ${
+                                    <span key={tag} className={`text-[8px] px-2 py-1 font-bold uppercase tracking-widest ${
                                       selectedSkill?.id === skill.id ? 'bg-purple-600/20 text-purple-400' : 'bg-zinc-900 text-zinc-700'
                                     }`}>
                                       {tag}
@@ -1088,7 +1234,7 @@ function MainApp() {
 
                   {/* Main Content: Skill Details */}
                   <div className="flex-1 bg-black border-2 border-zinc-900 flex flex-col overflow-hidden relative">
-                    <div className="absolute -right-20 -bottom-20 text-[20rem] font-black opacity-[0.01] select-none pointer-events-none italic uppercase hidden sm:block">
+                    <div className="absolute -right-20 -bottom-20 text-[20rem] font-bold opacity-[0.01] select-none pointer-events-none italic uppercase hidden sm:block">
                       CORE
                     </div>
                     
@@ -1109,14 +1255,14 @@ function MainApp() {
                                     {getIconForSkill(selectedSkill.title)}
                                   </div>
                                   <div>
-                                    <h2 className="text-xl sm:text-3xl font-black text-white uppercase tracking-tighter italic leading-none mb-2 sm:mb-3">{selectedSkill.title}</h2>
+                                    <h2 className="text-xl sm:text-3xl font-bold text-white uppercase tracking-tighter italic leading-none mb-2 sm:mb-3">{selectedSkill.title}</h2>
                                     <div className="flex items-center gap-4">
-                                      <p className="text-[9px] sm:text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Technical Specification</p>
+                                      <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.3em]">{t.main.technicalSpec}</p>
                                       {selectedSkill.tags && selectedSkill.tags.length > 0 && (
                                         <div className="hidden sm:flex items-center gap-2">
                                           <div className="w-1 h-1 bg-purple-500"></div>
                                           {selectedSkill.tags.map(tag => (
-                                            <span key={tag} className="text-[9px] px-2 py-1 bg-purple-600/10 text-purple-500 font-black uppercase tracking-widest">
+                                            <span key={tag} className="text-[9px] px-2 py-1 bg-purple-600/10 text-purple-500 font-bold uppercase tracking-widest">
                                               {tag}
                                             </span>
                                           ))}
@@ -1127,10 +1273,10 @@ function MainApp() {
                                 </div>
                                 <button
                                   onClick={() => downloadSkillAsZip(selectedSkill)}
-                                  className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-2 sm:py-3 px-4 sm:px-6 hover:text-white hover:border-purple-600 transition-all"
+                                  className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-2 sm:py-3 px-4 sm:px-6 hover:text-white hover:border-purple-600 transition-all"
                                 >
                                   <FileArchive className="w-4 h-4" />
-                                  <span className="hidden sm:inline">Export Phase</span>
+                                  <span className="hidden sm:inline">{t.main.download}</span>
                                 </button>
                               </div>
                               
@@ -1142,8 +1288,8 @@ function MainApp() {
                                         <Wand2 className="w-8 h-8 animate-pulse" />
                                       </div>
                                       <div className="text-center space-y-2">
-                                        <p className="font-black text-white uppercase tracking-widest text-sm italic">Refining Architecture</p>
-                                        <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Applying elite technical adjustments</p>
+                                        <p className="font-bold text-white uppercase tracking-widest text-sm italic">{t.main.refiningArch}</p>
+                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{t.main.applyingAdjustments}</p>
                                       </div>
                                     </div>
                                   </div>
@@ -1160,8 +1306,8 @@ function MainApp() {
                                       value={refinementPrompt}
                                       onChange={(e) => setRefinementPrompt(e.target.value)}
                                       dir={/[\u0590-\u05FF]/.test(refinementPrompt) ? 'rtl' : 'ltr'}
-                                      placeholder="REQUEST ARCHITECTURAL REFINEMENT..."
-                                      className="w-full bg-black border-2 border-zinc-800 px-6 py-4 text-[10px] font-black uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-800"
+                                      placeholder={t.main.describeRefinement}
+                                      className="w-full bg-black border-2 border-zinc-800 px-6 py-4 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-800"
                                       disabled={isRefining}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && refinementPrompt.trim() && !isRefining) {
@@ -1170,7 +1316,7 @@ function MainApp() {
                                       }}
                                     />
                                     {isRefining && (
-                                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                      <div className={`absolute ${lang === 'en' ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2`}>
                                         <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
                                       </div>
                                     )}
@@ -1178,10 +1324,10 @@ function MainApp() {
                                   <button
                                     onClick={handleRefine}
                                     disabled={!refinementPrompt.trim() || isRefining}
-                                    className="flex items-center gap-3 bg-purple-600 text-white px-8 py-4 font-black uppercase tracking-widest text-[10px] hover:bg-purple-500 disabled:opacity-50 transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                                    className="flex items-center gap-3 bg-purple-600 text-white px-8 py-4 font-bold uppercase tracking-widest text-[10px] hover:bg-purple-500 disabled:opacity-50 transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)]"
                                   >
                                     <Wand2 className="w-4 h-4" />
-                                    Refine
+                                    {isRefining ? t.main.refining : t.main.applyRefinement}
                                   </button>
                                 </div>
                               </div>
@@ -1189,7 +1335,7 @@ function MainApp() {
                           ) : (
                             <div className="flex-1 flex flex-col items-center justify-center text-zinc-800 p-12 text-center">
                               <Code2 className="w-24 h-24 mb-8 opacity-10" />
-                              <p className="font-black uppercase tracking-[0.3em] text-sm italic">Select an architectural phase to view technical details</p>
+                              <p className="font-bold uppercase tracking-[0.3em] text-sm italic">{t.main.selectPhase}</p>
                             </div>
                           )}
                         </motion.div>
@@ -1207,13 +1353,13 @@ function MainApp() {
                                 <Terminal className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic leading-none mb-3">Full-Stack Blueprint</h2>
-                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Master Implementation Prompt</p>
+                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.blueprint}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.masterImplementation}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.detailedPrompt || '', 'detailed_prompt.md')}
-                              className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
@@ -1237,13 +1383,13 @@ function MainApp() {
                                 <Settings2 className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic leading-none mb-3">Performance Strategy</h2>
-                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Optimization & Scaling</p>
+                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.strategy}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.optimizationScaling}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.systemOptimization || '', 'system_optimization.md')}
-                              className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
@@ -1267,13 +1413,13 @@ function MainApp() {
                                 <Code2 className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic leading-none mb-3">Execution Roadmap</h2>
-                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Skill Chain Logic</p>
+                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.roadmap}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.skillChainLogic}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.skillChainOptimization || '', 'skill_chain_logic.md')}
-                              className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
@@ -1297,13 +1443,13 @@ function MainApp() {
                                 <Wand2 className="w-6 h-6" />
                               </div>
                               <div>
-                                <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic leading-none mb-3">Master Orchestrator</h2>
-                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Ultimate System Logic</p>
+                                <h2 className="text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none mb-3">{t.main.orchestrator}</h2>
+                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.3em]">{t.main.ultimateSystemLogic}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => downloadContent(currentProject.masterSkill || '', 'master_skill.md')}
-                              className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
+                              className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border-2 border-zinc-800 py-3 px-6 hover:text-white hover:border-purple-600 transition-all"
                             >
                               <FileDown className="w-4 h-4" />
                               <span className="hidden sm:inline">Export .MD</span>
@@ -1327,29 +1473,29 @@ function MainApp() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8">
               <div className="flex items-center gap-4">
                 <div className="h-[2px] w-8 bg-purple-500"></div>
-                <h2 className="text-xs font-black uppercase tracking-[0.4em] text-purple-500">Project Archive</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-[0.4em] text-purple-500">{t.header.library}</h2>
               </div>
               
               <div className="flex items-center gap-6">
                 <div className="relative w-full sm:w-80">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <div className={`absolute inset-y-0 ${lang === 'en' ? 'left-0 pl-4' : 'right-0 pr-4'} flex items-center pointer-events-none`}>
                     <Search className="h-4 w-4 text-zinc-600" />
                   </div>
                   <input
                     type="text"
-                    placeholder="SEARCH ARCHIVE..."
+                    placeholder={t.main.searchArchive}
                     value={projectSearchQuery}
                     onChange={(e) => setProjectSearchQuery(e.target.value)}
-                    className="w-full bg-zinc-900 border-2 border-zinc-800 px-12 py-3 text-[10px] font-black uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700"
+                    className={`w-full bg-zinc-900 border-2 border-zinc-800 ${lang === 'en' ? 'pl-12 pr-4' : 'pr-12 pl-4'} py-3 text-[10px] font-bold uppercase tracking-widest focus:border-purple-600 outline-none transition-all placeholder:text-zinc-700`}
                   />
                 </div>
                 {savedProjects.length > 0 && (
                   <button
                     onClick={() => setIsDeleteAllModalOpen(true)}
-                    className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 bg-red-500/5 border-2 border-red-500/20 py-3 px-6 transition-all"
+                    className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 bg-red-500/5 border-2 border-red-500/20 py-3 px-6 transition-all"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Purge All
+                    {t.main.purgeAll}
                   </button>
                 )}
               </div>
@@ -1358,14 +1504,14 @@ function MainApp() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {savedProjects.length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-40 text-zinc-800 bg-black border-2 border-zinc-900 relative overflow-hidden">
-                  <div className="absolute inset-0 text-[15rem] font-black opacity-[0.01] select-none pointer-events-none italic uppercase flex items-center justify-center">
-                    EMPTY
+                  <div className="absolute inset-0 text-[15rem] font-bold opacity-[0.01] select-none pointer-events-none italic uppercase flex items-center justify-center">
+                    {t.main.emptyArchive}
                   </div>
                   <div className="w-24 h-24 bg-zinc-900 flex items-center justify-center mb-8 border-2 border-zinc-800 relative z-10">
                     <FileArchive className="w-10 h-10 opacity-20" />
                   </div>
-                  <h3 className="text-xl font-black text-white uppercase tracking-tighter italic mb-3 relative z-10">No archived projects</h3>
-                  <p className="max-w-xs text-center text-[10px] font-black uppercase tracking-widest text-zinc-600 relative z-10">Your architectural specifications will appear here once archived.</p>
+                  <h3 className="text-xl font-bold text-white uppercase tracking-tighter italic mb-3 relative z-10">{t.main.noArchivedProjects}</h3>
+                  <p className="max-w-xs text-center text-[10px] font-bold uppercase tracking-widest text-zinc-600 relative z-10">{t.main.archivedWillAppear}</p>
                 </div>
               ) : savedProjects.filter(project => {
                 const query = projectSearchQuery.toLowerCase();
@@ -1381,7 +1527,7 @@ function MainApp() {
               }).length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-zinc-600">
                   <Search className="w-12 h-12 opacity-10 mb-6" />
-                  <p className="font-black uppercase tracking-widest text-xs italic">No projects found matching "{projectSearchQuery}"</p>
+                  <p className="font-bold uppercase tracking-widest text-xs italic">{t.main.noProjectsFound} "{projectSearchQuery}"</p>
                 </div>
               ) : (
                 savedProjects.filter(project => {
@@ -1408,7 +1554,7 @@ function MainApp() {
                       setActiveTab('generate');
                     }}
                   >
-                    <div className="absolute -right-6 -top-6 text-6xl font-black opacity-[0.03] select-none pointer-events-none italic uppercase group-hover:opacity-10 transition-opacity">
+                    <div className="absolute -right-6 -top-6 text-6xl font-bold opacity-[0.03] select-none pointer-events-none italic uppercase group-hover:opacity-10 transition-opacity">
                       ARCH
                     </div>
                     
@@ -1428,13 +1574,13 @@ function MainApp() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        <span className="text-[9px] font-black text-purple-500 bg-purple-600/10 px-3 py-1 uppercase tracking-widest border border-purple-600/20">
-                          {project.skills.length} PHASES
+                        <span className="text-[9px] font-bold text-purple-500 bg-purple-600/10 px-3 py-1 uppercase tracking-widest border border-purple-600/20">
+                          {project.skills.length} {t.main.phasesCount}
                         </span>
                       </div>
                     </div>
                     
-                    <h3 className="text-xl font-black text-white uppercase tracking-tighter italic mb-4 line-clamp-2 group-hover:text-purple-500 transition-colors">{project.title}</h3>
+                    <h3 className="text-xl font-semibold text-white uppercase tracking-tighter italic mb-4 line-clamp-2 group-hover:text-purple-500 transition-colors">{project.title}</h3>
                     <p className="text-xs font-medium text-zinc-500 line-clamp-3 mb-6 flex-1 leading-relaxed uppercase tracking-tight">
                       {project.prompt}
                     </p>
@@ -1445,12 +1591,12 @@ function MainApp() {
                         return (
                           <div className="flex flex-wrap gap-2 mb-8">
                             {allTags.map(tag => (
-                              <span key={tag} className="text-[8px] px-2 py-1 bg-zinc-900 text-zinc-600 font-black uppercase tracking-widest border border-zinc-800">
+                              <span key={tag} className="text-[8px] px-2 py-1 bg-zinc-900 text-zinc-600 font-semibold uppercase tracking-widest border border-zinc-800">
                                 {tag}
                               </span>
                             ))}
                             {new Set(project.skills.flatMap(s => s.tags || [])).size > 3 && (
-                              <span className="text-[8px] px-2 py-1 bg-black text-zinc-700 font-black uppercase tracking-widest">
+                              <span className="text-[8px] px-2 py-1 bg-black text-zinc-700 font-semibold uppercase tracking-widest">
                                 +{new Set(project.skills.flatMap(s => s.tags || [])).size - 3}
                               </span>
                             )}
@@ -1463,8 +1609,8 @@ function MainApp() {
                     <div className="flex items-center justify-between mt-auto pt-6 border-t border-zinc-900">
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
-                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em]">
-                          {project.createdAt?.toDate ? new Date(project.createdAt.toDate()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just now'}
+                        <span className="text-[9px] font-semibold text-zinc-600 uppercase tracking-[0.2em]">
+                          {project.createdAt?.toDate ? new Date(project.createdAt.toDate()).toLocaleDateString(lang === 'en' ? 'en-US' : 'he-IL', { month: 'short', day: 'numeric', year: 'numeric' }) : t.main.justNow}
                         </span>
                       </div>
                       <button
@@ -1489,120 +1635,141 @@ function MainApp() {
       {/* API Settings Modal */}
       <AnimatePresence>
         {isSettingsOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-xl">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 40 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="bg-black border-2 border-zinc-900 w-full max-w-xl overflow-hidden relative"
+              className="bg-black border-2 border-zinc-900 w-full max-w-xl overflow-hidden relative flex flex-col max-h-[90vh]"
             >
-              <div className="absolute -right-10 -top-10 text-9xl font-black opacity-[0.02] select-none pointer-events-none italic uppercase">
+              <div className="absolute -right-10 -top-10 text-9xl font-bold opacity-[0.02] select-none pointer-events-none italic uppercase">
                 KEY
               </div>
               
-              <div className="p-10 border-b border-zinc-900 flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-6">
-                  <div className="p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
-                    <Key className="w-6 h-6" />
+              <div className="p-6 sm:p-10 border-b border-zinc-900 flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <button 
+                    onClick={() => setIsSettingsOpen(false)}
+                    className="p-2 text-zinc-500 hover:text-white transition-all sm:hidden"
+                    title="Back"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <div className="p-3 sm:p-4 bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+                    <Key className="w-5 h-5 sm:w-6 h-6" />
                   </div>
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic leading-none">API Configuration</h2>
+                  <h2 className="text-xl sm:text-3xl font-semibold text-white uppercase tracking-tighter italic leading-none">{t.modals.apiConfig}</h2>
                 </div>
                 <button 
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-3 bg-zinc-900 border-2 border-zinc-800 text-zinc-500 hover:text-white hover:border-purple-600 transition-all"
+                  className="p-3 bg-zinc-900 border-2 border-zinc-800 text-zinc-500 hover:text-white hover:border-purple-600 transition-all hidden sm:block"
+                  title="Close"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
               
-              <form onSubmit={handleSaveApiKey} className="p-10 space-y-10 relative z-10">
-                <div className="bg-purple-600/5 p-8 border-2 border-purple-600/20 space-y-6">
-                  <h3 className="text-[10px] font-black text-purple-500 flex items-center gap-3 uppercase tracking-[0.3em]">
-                    <AlertCircle className="w-5 h-5" />
-                    Setup Guide / Integration
-                  </h3>
-                  <ol className="text-[11px] text-zinc-500 space-y-4 font-black uppercase tracking-widest leading-relaxed">
-                    <li className="flex gap-4"><span className="text-purple-500">01.</span> Access <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-white underline hover:text-purple-500">Google AI Studio</a></li>
-                    <li className="flex gap-4"><span className="text-purple-500">02.</span> Initialize "Create API Key"</li>
-                    <li className="flex gap-4"><span className="text-purple-500">03.</span> Select Project & Provision Key</li>
-                    <li className="flex gap-4"><span className="text-purple-500">04.</span> Inject Key into the field below</li>
-                  </ol>
-                </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSaveApiKey} className="p-6 sm:p-10 space-y-8 sm:space-y-10 relative z-10">
+                  <div className="bg-purple-600/5 p-6 sm:p-8 border-2 border-purple-600/20 space-y-6">
+                    <h3 className="text-[10px] font-semibold text-purple-500 flex items-center gap-3 uppercase tracking-[0.3em]">
+                      <AlertCircle className="w-5 h-5" />
+                      {t.modals.setupGuide}
+                    </h3>
+                    <ol className="text-[10px] sm:text-[11px] text-zinc-500 space-y-4 font-semibold uppercase tracking-widest leading-relaxed">
+                      {t.modals.guideSteps.map((step: string, idx: number) => (
+                        <li key={idx} className="flex gap-4">
+                          <span className="text-purple-500">0{idx + 1}.</span> 
+                          <span className="flex-1">
+                            {idx === 0 ? (
+                              <>Access <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-white underline hover:text-purple-500">Google AI Studio</a></>
+                            ) : step}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
 
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">
-                    Gemini API Key / Production
-                  </label>
-                  <input
-                    type="password"
-                    value={manualApiKey}
-                    onChange={(e) => {
-                      setManualApiKey(e.target.value);
-                      setKeyValidationStatus('idle');
-                    }}
-                    placeholder="ENTER SECRET KEY..."
-                    className={`w-full bg-zinc-900 border-2 px-6 py-5 text-[10px] font-black uppercase tracking-widest outline-none transition-all placeholder:text-zinc-800 ${
-                      keyValidationStatus === 'error' 
-                        ? 'border-red-500 focus:border-red-500' 
-                        : keyValidationStatus === 'success'
-                        ? 'border-emerald-500 focus:border-emerald-500'
-                        : 'border-zinc-800 focus:border-purple-600'
-                    }`}
-                  />
-                  {keyValidationStatus === 'error' && (
-                    <p className="text-[9px] text-red-500 font-black uppercase tracking-widest flex items-center gap-2">
-                      <AlertCircle className="w-3 h-3" />
-                      Validation Failed / Check Credentials
-                    </p>
-                  )}
-                  {keyValidationStatus === 'success' && (
-                    <p className="text-[9px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-2">
-                      <CheckCircle2 className="w-3 h-3" />
-                      System Online / Key Validated
-                    </p>
-                  )}
-                  <p className="text-[9px] text-zinc-700 font-black uppercase tracking-widest leading-relaxed">
-                    Keys are stored locally / Encrypted in browser storage / No server-side persistence.
-                  </p>
-                </div>
-                
-                <div className="flex gap-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSettingsOpen(false);
-                      setKeyValidationStatus('idle');
-                    }}
-                    className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-black uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
-                    disabled={isValidatingKey}
-                  >
-                    Abort
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isValidatingKey || !manualApiKey.trim()}
-                    className={`flex-1 px-8 py-5 text-white font-black uppercase tracking-widest text-[10px] transition-all shadow-lg flex items-center justify-center gap-3 ${
-                      keyValidationStatus === 'success'
-                        ? 'bg-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
-                        : 'bg-purple-600 hover:bg-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.2)]'
-                    }`}
-                  >
-                    {isValidatingKey ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Validating...
-                      </>
-                    ) : keyValidationStatus === 'success' ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4" />
-                        Validated
-                      </>
-                    ) : (
-                      'Save & Validate'
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.4em]">
+                      {t.modals.geminiKey}
+                    </label>
+                    <input
+                      type="password"
+                      value={manualApiKey}
+                      onChange={(e) => {
+                        setManualApiKey(e.target.value);
+                        setKeyValidationStatus('idle');
+                      }}
+                      placeholder={t.modals.enterSecret}
+                      className={`w-full bg-zinc-900 border-2 px-6 py-5 text-[10px] font-semibold uppercase tracking-widest outline-none transition-all placeholder:text-zinc-800 ${
+                        keyValidationStatus === 'error' 
+                          ? 'border-red-500 focus:border-red-500' 
+                          : keyValidationStatus === 'success'
+                          ? 'border-emerald-500 focus:border-emerald-500'
+                          : 'border-zinc-800 focus:border-purple-600'
+                      }`}
+                    />
+                    {keyValidationStatus === 'error' && (
+                      <p className="text-[9px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                        <AlertCircle className="w-3 h-3" />
+                        {t.modals.validationFailed}
+                      </p>
                     )}
-                  </button>
-                </div>
-              </form>
+                    {keyValidationStatus === 'success' && (
+                      <p className="text-[9px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {t.modals.systemOnline}
+                      </p>
+                    )}
+                    <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-widest leading-relaxed">
+                      {t.modals.keyStorageNote}
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSettingsOpen(false);
+                        setKeyValidationStatus('idle');
+                      }}
+                      className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-bold uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all flex items-center justify-center gap-3"
+                      disabled={isValidatingKey}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      {t.modals.abort}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isValidatingKey || !manualApiKey.trim()}
+                      className={`flex-1 px-8 py-5 text-white font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg flex items-center justify-center gap-3 ${
+                        keyValidationStatus === 'success'
+                          ? 'bg-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                          : 'bg-purple-600 hover:bg-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.2)]'
+                      }`}
+                    >
+                      {isValidatingKey ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {t.modals.validating}
+                        </>
+                      ) : keyValidationStatus === 'success' ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4" />
+                          {t.modals.validated}
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          {t.modals.validateSave}
+                          <ChevronRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </motion.div>
           </div>
         )}
@@ -1611,48 +1778,55 @@ function MainApp() {
       {/* Save Modal */}
       <AnimatePresence>
         {isSaveModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-xl">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-black border-2 border-zinc-900 max-w-xl w-full p-10 relative overflow-hidden"
+              className="bg-black border-2 border-zinc-900 max-w-xl w-full p-6 sm:p-10 relative overflow-hidden"
             >
-              <div className="absolute -right-10 -top-10 text-9xl font-black opacity-[0.02] select-none pointer-events-none italic uppercase">
+              <div className="absolute -right-10 -top-10 text-9xl font-bold opacity-[0.02] select-none pointer-events-none italic uppercase">
                 SAVE
               </div>
-              
-              <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic mb-6 relative z-10">Archive Project</h3>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-10 relative z-10">
-                Commit this architectural specification to the local archive.
+                    <div className="flex items-center justify-between mb-6 relative z-10">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-white uppercase tracking-tighter italic">{t.modals.archiveProjectTitle}</h3>
+                <button 
+                  onClick={() => setIsSaveModalOpen(false)}
+                  className="p-2 text-zinc-500 hover:text-white transition-all"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.2em] mb-10 relative z-10">
+                {t.modals.commitNote}
               </p>
               <div className="space-y-6 relative z-10">
-                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">
-                  Project Designation
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.4em]">
+                  {t.modals.projectDesignation}
                 </label>
                 <input
                   type="text"
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
-                  placeholder="DESIGNATION NAME..."
-                  className="w-full bg-zinc-900 border-2 border-zinc-800 px-6 py-5 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-purple-600 transition-all placeholder:text-zinc-800"
+                  placeholder={t.modals.designationName}
+                  className="w-full bg-zinc-900 border-2 border-zinc-800 px-6 py-5 text-[10px] font-semibold uppercase tracking-widest text-white outline-none focus:border-purple-600 transition-all placeholder:text-zinc-800"
                   autoFocus
                 />
               </div>
               <div className="flex gap-6 mt-10 relative z-10">
                 <button
                   onClick={() => setIsSaveModalOpen(false)}
-                  className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-black uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
+                  className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-bold uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
                 >
-                  Abort
+                  {t.modals.abort}
                 </button>
                 <button
                   onClick={saveProjectToFirebase}
                   disabled={!customTitle.trim() || isSaving}
-                  className="flex-1 px-8 py-5 bg-purple-600 text-white font-black uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)] flex items-center justify-center gap-3"
+                  className="flex-1 px-8 py-5 bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)] flex items-center justify-center gap-3"
                 >
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Confirm Archive
+                  {t.modals.confirmArchive}
                 </button>
               </div>
             </motion.div>
@@ -1663,20 +1837,30 @@ function MainApp() {
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-xl">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-black border-2 border-zinc-900 max-w-md w-full p-10 relative overflow-hidden"
+              className="bg-black border-2 border-zinc-900 max-w-md w-full p-6 sm:p-10 relative overflow-hidden"
             >
-              <div className="absolute -right-10 -top-10 text-9xl font-black opacity-[0.02] select-none pointer-events-none italic uppercase">
+              <div className="absolute -right-10 -top-10 text-9xl font-bold opacity-[0.02] select-none pointer-events-none italic uppercase">
                 DEL
               </div>
-              
-              <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic mb-6 relative z-10">Purge Specification?</h3>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-10 relative z-10 leading-relaxed">
-                This action will permanently remove <span className="text-white">"{projectToDelete?.title}"</span> from the archive. This process is irreversible.
+                    <div className="flex items-center justify-between mb-6 relative z-10">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-white uppercase tracking-tighter italic">{t.modals.purgeSpec}</h3>
+                <button 
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setProjectToDelete(null);
+                  }}
+                  className="p-2 text-zinc-500 hover:text-white transition-all"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-10 relative z-10 leading-relaxed">
+                {t.modals.purgeNote.replace('{title}', projectToDelete?.title || '')}
               </p>
               <div className="flex gap-6 relative z-10">
                 <button
@@ -1684,17 +1868,17 @@ function MainApp() {
                     setIsDeleteModalOpen(false);
                     setProjectToDelete(null);
                   }}
-                  className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-black uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
+                  className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-bold uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
                 >
-                  Abort
+                  {t.modals.abort}
                 </button>
                 <button
                   onClick={deleteProject}
                   disabled={isDeleting}
-                  className="flex-1 px-8 py-5 bg-red-600 text-white font-black uppercase tracking-widest text-[10px] hover:bg-red-500 transition-all shadow-[0_0_20px_rgba(239,68,68,0.2)] flex items-center justify-center gap-3"
+                  className="flex-1 px-8 py-5 bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-red-500 transition-all shadow-[0_0_20px_rgba(239,68,68,0.2)] flex items-center justify-center gap-3"
                 >
                   {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  Confirm Purge
+                  {t.modals.confirmPurge}
                 </button>
               </div>
             </motion.div>
@@ -1705,35 +1889,42 @@ function MainApp() {
       {/* Delete All Confirmation Modal */}
       <AnimatePresence>
         {isDeleteAllModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-xl">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-black border-2 border-zinc-900 max-w-md w-full p-10 relative overflow-hidden"
+              className="bg-black border-2 border-zinc-900 max-w-md w-full p-6 sm:p-10 relative overflow-hidden"
             >
-              <div className="absolute -right-10 -top-10 text-9xl font-black opacity-[0.02] select-none pointer-events-none italic uppercase">
+              <div className="absolute -right-10 -top-10 text-9xl font-bold opacity-[0.02] select-none pointer-events-none italic uppercase">
                 ALL
               </div>
-              
-              <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic mb-6 relative z-10 text-red-500">Total Purge?</h3>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-10 relative z-10 leading-relaxed">
-                You are about to initiate a total purge of the project archive. <span className="text-white">ALL DATA</span> will be permanently erased.
+                    <div className="flex items-center justify-between mb-6 relative z-10">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-white uppercase tracking-tighter italic text-red-500">{t.modals.totalPurge}</h3>
+                <button 
+                  onClick={() => setIsDeleteAllModalOpen(false)}
+                  className="p-2 text-zinc-500 hover:text-white transition-all"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-10 relative z-10 leading-relaxed">
+                {t.modals.totalPurgeNote}
               </p>
               <div className="flex gap-6 relative z-10">
                 <button
                   onClick={() => setIsDeleteAllModalOpen(false)}
-                  className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-black uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
+                  className="flex-1 px-8 py-5 bg-zinc-900 text-zinc-500 font-bold uppercase tracking-widest text-[10px] border-2 border-zinc-800 hover:text-white hover:border-zinc-700 transition-all"
                 >
-                  Abort
+                  {t.modals.abort}
                 </button>
                 <button
                   onClick={deleteAllProjects}
                   disabled={isDeleting}
-                  className="flex-1 px-8 py-5 bg-red-600 text-white font-black uppercase tracking-widest text-[10px] hover:bg-red-500 transition-all shadow-[0_0_20px_rgba(239,68,68,0.2)] flex items-center justify-center gap-3"
+                  className="flex-1 px-8 py-5 bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-red-500 transition-all shadow-[0_0_20px_rgba(239,68,68,0.2)] flex items-center justify-center gap-3"
                 >
                   {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  Confirm Purge
+                  {t.modals.confirmTotalPurge}
                 </button>
               </div>
             </motion.div>
