@@ -571,9 +571,10 @@ function MainApp() {
         setSelectedSkill(result.skills[0]);
       }
       setActiveResultView('skills');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Generation failed:", error);
-      alert("Failed to generate skills. Please try again.");
+      const errorMessage = error.message || "Unknown error occurred";
+      alert(`Failed to generate skills: ${errorMessage}\n\nPlease check your API key in settings.`);
     } finally {
       setIsGenerating(false);
     }
