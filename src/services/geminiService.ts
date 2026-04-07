@@ -4,15 +4,15 @@ import { Skill, GenerateOptions } from "../types";
 // Helper to get the AI instance with the current API key
 function getAI() {
   const manualKey = localStorage.getItem('GEMINI_API_KEY');
-  // Vite replaces process.env.GEMINI_API_KEY at build time.
-  // We also check import.meta.env as a fallback for some environments.
-  const envKey = process.env.GEMINI_API_KEY;
-  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
   
-  const apiKey = manualKey || envKey || viteKey;
+  // In Vite/Vercel, environment variables must be prefixed with VITE_ to be accessible in the browser
+  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  const envKey = process.env.GEMINI_API_KEY;
+  
+  const apiKey = manualKey || viteKey || envKey;
 
   if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-    throw new Error("GEMINI_API_KEY is missing. Please provide it in the settings or set it as an environment variable (GEMINI_API_KEY or VITE_GEMINI_API_KEY).");
+    throw new Error("GEMINI_API_KEY is missing. Please set VITE_GEMINI_API_KEY in Vercel or your .env file.");
   }
 
   return new GoogleGenAI({ apiKey });
@@ -40,13 +40,11 @@ export async function generateSkills(options: GenerateOptions): Promise<{
   skillChainOptimization: string,
   masterSkill: string
 }> {
-  try {
-    const ai = getAI();
-    
-    // Optimized: Single high-quality call instead of multiple calls to save API quota
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", 
-      contents: `You are the Elite Vibe Coding Instructor. Your mission is to guide developers in building high-performance skills and architectural mastery through the "vibe coding" philosophy.
+  const ai = getAI();
+  
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview", 
+    contents: `You are the Elite Vibe Coding Instructor. Your mission is to guide developers in building high-performance skills and architectural mastery through the "vibe coding" philosophy.
 Your expertise spans across high-performance distributed systems, cutting-edge frontend engineering, and elite UI/UX design.
 
 The student wants to build the following project:
@@ -82,87 +80,77 @@ STRICT INSTRUCTOR RULES:
 6. LANGUAGE: The response from the model must always be in English, regardless of the input language.
 
 Return the response as a JSON object with the following structure:`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: {
-              type: Type.STRING,
-              description: "A sophisticated, professional title for the project.",
-            },
-            detailedPrompt: {
-              type: Type.STRING,
-              description: "A master-level, full-stack prompt for the entire system.",
-            },
-            systemOptimization: {
-              type: Type.STRING,
-              description: "A deep-dive technical optimization strategy.",
-            },
-            skillChainOptimization: {
-              type: Type.STRING,
-              description: "A strategic execution roadmap and dependency graph.",
-            },
-            masterSkill: {
-              type: Type.STRING,
-              description: "The ultimate orchestrator skill providing precise instructions to the model on when and how to use the other skills.",
-            },
-            skills: {
-              type: Type.ARRAY,
-              description: "The list of elite skills required to build the project.",
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  id: {
-                    type: Type.STRING,
-                    description: "A unique semantic string ID for the skill.",
-                  },
-                  title: {
-                    type: Type.STRING,
-                    description: "The professional name of the skill.",
-                  },
-                  content: {
-                    type: Type.STRING,
-                    description: "The elite-level markdown content for this skill. Include Technical Requirements and Architectural Notes.",
-                  },
-                  tags: {
-                    type: Type.ARRAY,
-                    description: "An array of 3-6 relevant keywords or technologies.",
-                    items: {
-                      type: Type.STRING
-                    }
-                  }
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          title: {
+            type: Type.STRING,
+            description: "A sophisticated, professional title for the project.",
+          },
+          detailedPrompt: {
+            type: Type.STRING,
+            description: "A master-level, full-stack prompt for the entire system.",
+          },
+          systemOptimization: {
+            type: Type.STRING,
+            description: "A deep-dive technical optimization strategy.",
+          },
+          skillChainOptimization: {
+            type: Type.STRING,
+            description: "A strategic execution roadmap and dependency graph.",
+          },
+          masterSkill: {
+            type: Type.STRING,
+            description: "The ultimate orchestrator skill providing precise instructions to the model on when and how to use the other skills.",
+          },
+          skills: {
+            type: Type.ARRAY,
+            description: "The list of elite skills required to build the project.",
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: {
+                  type: Type.STRING,
+                  description: "A unique semantic string ID for the skill.",
                 },
-                required: ["id", "title", "content", "tags"],
+                title: {
+                  type: Type.STRING,
+                  description: "The professional name of the skill.",
+                },
+                content: {
+                  type: Type.STRING,
+                  description: "The elite-level markdown content for this skill. Include Technical Requirements and Architectural Notes.",
+                },
+                tags: {
+                  type: Type.ARRAY,
+                  description: "An array of 3-6 relevant keywords or technologies.",
+                  items: {
+                    type: Type.STRING
+                  }
+                }
               },
+              required: ["id", "title", "content", "tags"],
             },
           },
-          required: ["title", "detailedPrompt", "systemOptimization", "skillChainOptimization", "masterSkill", "skills"],
         },
+        required: ["title", "detailedPrompt", "systemOptimization", "skillChainOptimization", "masterSkill", "skills"],
       },
-    });
+    },
+  });
 
-    const text = response.text;
-    if (!text) throw new Error("No response from AI");
-    
-    return JSON.parse(text);
-
-  } catch (error: any) {
-    console.error("Error generating skills:", error);
-    if (error.message?.includes('429') || error.message?.includes('quota')) {
-      throw new Error("API Quota Exceeded. The free tier of Gemini has limits. Please wait a minute and try again.");
-    }
-    throw error;
-  }
+  const text = response.text;
+  if (!text) throw new Error("No response from AI");
+  
+  return JSON.parse(text);
 }
 
 export async function refineSkill(skill: Skill, projectContext: string, refinementPrompt: string): Promise<Skill> {
-  try {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `You are the Elite Vibe Coding Instructor.
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `You are the Elite Vibe Coding Instructor.
 Project Context: "${projectContext}"
 
 Current Architectural Specification:
@@ -177,39 +165,31 @@ Ensure all technical requirements are precise, code examples are modern and type
 The response from the model must always be in English, regardless of the input language.
 
 Return a JSON object with the updated "title", "content", and "tags".`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            content: { type: Type.STRING },
-            tags: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            }
-          },
-          required: ["title", "content", "tags"],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          content: { type: Type.STRING },
+          tags: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          }
         },
+        required: ["title", "content", "tags"],
       },
-    });
+    },
+  });
 
-    const text = response.text;
-    if (!text) throw new Error("No response from AI");
-    
-    const parsed = JSON.parse(text);
-    return {
-      ...skill,
-      title: parsed.title,
-      content: parsed.content,
-      tags: parsed.tags
-    };
-  } catch (error: any) {
-    console.error("Error refining skill:", error);
-    if (error.message?.includes('429') || error.message?.includes('quota')) {
-      throw new Error("API Quota Exceeded. Please wait a minute and try again.");
-    }
-    throw error;
-  }
+  const text = response.text;
+  if (!text) throw new Error("No response from AI");
+  
+  const parsed = JSON.parse(text);
+  return {
+    ...skill,
+    title: parsed.title,
+    content: parsed.content,
+    tags: parsed.tags
+  };
 }
